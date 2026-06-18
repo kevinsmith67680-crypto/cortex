@@ -1,0 +1,8 @@
+{
+  "appId": "com.eddiekung.cortex",
+  "appName": "Retain",
+  "webDir": "public",
+  "ios": {
+    "contentInset": "automatic"
+  }
+}

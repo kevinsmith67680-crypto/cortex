@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Retain — book retention quizzes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --ink: #1d2230; --ink-soft: #5a6072; --paper: #fbfaf6; --paper-deep: #f1efe6;
+  --line: #d9d5c7; --mark: #e85b7a; --mark-soft: #fbdbe4; --card: #ffffff;
+  --right: #1f7a4d; --wrong: #b3422f;
+}
+[data-theme="dark"] {
+  --ink: #ece9e0; --ink-soft: #9b9caa; --paper: #15171e; --paper-deep: #1e212b;
+  --line: #333745; --mark: #f06d8a; --mark-soft: #4a2730; --card: #1c1f28;
+  --right: #4ecb86; --wrong: #e0816f;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+html { background: var(--paper); }
+body {
+  min-height: 100vh; background: var(--paper); color: var(--ink);
+  font-family: 'Public Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  transition: background 250ms ease, color 250ms ease;
+  overscroll-behavior: none;
+}
+.shell { max-width: 720px; margin: 0 auto;
+  padding-top: calc(40px + env(safe-area-inset-top));
+  padding-left: calc(22px + env(safe-area-inset-left));
+  padding-right: calc(22px + env(safe-area-inset-right));
+  padding-bottom: 130px; }
+
+.brand {
+  font-family: 'Fraunces', serif; font-weight: 800; font-size: 18px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 30px;
+}
+.brand .swatch { width: 26px; height: 12px; background: var(--mark); transform: skewX(-12deg); }
+.brandlogo { height: 34px; width: auto; display: block; }
+.brandlogo.dark { display: none; }
+[data-theme="dark"] .brandlogo.light { display: none; }
+[data-theme="dark"] .brandlogo.dark { display: block; }
+.rankbadge {
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-soft); border: 1.5px solid var(--line); border-radius: 99px;
+  padding: 6px 13px; background: var(--card);
+}
+.rankbadge .lvl { font-family: 'Fraunces', serif; font-weight: 800; font-size: 14px; color: var(--ink); }
+
+h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 14px; }
+h1 em { font-style: italic; font-weight: 500; }
+.lede { color: var(--ink-soft); font-size: 16px; line-height: 1.55; margin: 0 0 26px; max-width: 52ch; }
+h2.sec { font-family: 'Fraunces', serif; font-weight: 600; font-size: 24px; margin: 0 0 16px; }
+
+.hl { position: relative; white-space: nowrap; }
+.hl::before { content: ""; position: absolute; left: -3px; right: -5px; top: 54%; height: 0.62em;
+  background: var(--mark-soft); z-index: -1; transform: skewX(-10deg) rotate(-0.6deg); }
+
+.searchrow { display: flex; gap: 10px; }
+input.search, textarea.notes, input.text {
+  flex: 1; width: 100%; font: inherit; font-size: 16px; color: var(--ink);
+  background: var(--card); border: 1.5px solid var(--ink); border-radius: 4px;
+  padding: 13px 15px; outline: none;
+}
+textarea.notes { min-height: 200px; resize: vertical; line-height: 1.5; font-size: 15px; }
+input.search:focus-visible, textarea.notes:focus-visible, input.text:focus-visible { box-shadow: 0 0 0 3px var(--mark-soft); }
+.btn { font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
+  background: var(--ink); color: var(--paper); border: 1.5px solid var(--ink);
+  border-radius: 4px; padding: 13px 22px; }
+.btn:hover { opacity: 0.9; }
+.btn:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn.ghost:hover { background: var(--paper-deep); }
+.btn.full { width: 100%; }
+
+.results { margin-top: 28px; display: grid; gap: 10px; }
+.bookcard { display: flex; gap: 14px; align-items: center; text-align: left; width: 100%;
+  background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+  padding: 12px 14px; cursor: pointer; font: inherit; color: inherit;
+  transition: transform 120ms ease, border-color 120ms ease; }
+.bookcard:hover { border-color: var(--ink); transform: translateX(3px); }
+.bookcard:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+.cover { width: 44px; height: 64px; flex: none; border-radius: 3px; object-fit: cover;
+  background: var(--paper-deep); border: 1px solid var(--line); }
+.cover.blank { display: flex; align-items: center; justify-content: center;
+  font-family: 'Fraunces', serif; color: var(--ink-soft); font-size: 18px; }
+.booktitle { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.bookmeta { color: var(--ink-soft); font-size: 13px; margin-top: 2px; display: block; }
+
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 10px; }
+
+.progress { display: flex; gap: 5px; margin: 6px 0 26px; }
+.progress span { flex: 1; height: 5px; background: var(--paper-deep); border-radius: 99px; }
+.progress span.done { background: var(--mark); }
+.progress span.now { background: var(--ink); }
+
+.q { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(21px, 3.6vw, 27px);
+  line-height: 1.3; margin: 0 0 22px; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: baseline; text-align: left; width: 100%;
+  font: inherit; font-size: 15.5px; line-height: 1.45; color: inherit;
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 6px;
+  padding: 13px 15px; cursor: pointer; transition: border-color 100ms ease; }
+.opt:hover:not([disabled]) { border-color: var(--ink); }
+.opt:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+.opt[disabled] { cursor: default; }
+.opt .key { font-family: 'Fraunces', serif; font-weight: 800; font-size: 14px; flex: none; width: 22px; color: var(--ink-soft); }
+.opt.is-right { border-color: var(--right); }
+.opt.is-right .txt { background: linear-gradient(transparent 45%, var(--mark) 45%, var(--mark) 92%, transparent 92%); }
+.opt.is-wrong { border-color: var(--wrong); color: var(--wrong); }
+.opt.dim { opacity: 0.5; }
+
+.explain { margin-top: 18px; padding: 14px 16px; background: var(--paper-deep);
+  border-left: 3px solid var(--ink); border-radius: 0 6px 6px 0; font-size: 14.5px; line-height: 1.55; }
+.explain .verdict { font-weight: 700; margin-right: 6px; }
+.explain .verdict.ok { color: var(--right); }
+.explain .verdict.no { color: var(--wrong); }
+
+.footrow { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; }
+.count { color: var(--ink-soft); font-size: 13px; font-weight: 600; }
+
+.loading { text-align: center; padding: 70px 0 30px; }
+.loading .pen { width: 120px; height: 14px; margin: 0 auto 26px; background: var(--mark);
+  transform: skewX(-12deg); animation: sweep 1.1s ease-in-out infinite alternate; transform-origin: left center; }
+@keyframes sweep { from { transform: skewX(-12deg) scaleX(0.25); } to { transform: skewX(-12deg) scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .loading .pen, .xpfill, .levelup { animation: none !important; transition: none !important; } }
+.loading p { color: var(--ink-soft); font-size: 15px; }
+
+.scorebig { font-family: 'Fraunces', serif; font-weight: 800; font-size: clamp(54px, 11vw, 86px); line-height: 1; margin: 8px 0 6px; }
+.scorebig small { font-size: 0.42em; font-weight: 500; color: var(--ink-soft); }
+.verdictline { font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; margin-bottom: 22px; }
+
+.levelup { display: inline-flex; align-items: center; gap: 10px; margin: 4px 0 18px;
+  background: var(--ink); color: var(--mark); border-radius: 6px; padding: 10px 16px;
+  font-family: 'Fraunces', serif; font-weight: 800; font-size: 17px; letter-spacing: 0.03em;
+  animation: pop 420ms cubic-bezier(.22,1.6,.36,1); }
+@keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.xpblock { margin: 22px 0 26px; max-width: 420px; }
+.xprow { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 7px; }
+.xpbar { height: 10px; background: var(--paper-deep); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.xpfill { height: 100%; width: 0%; background: var(--mark); border-radius: 99px; transition: width 900ms cubic-bezier(.22,1,.36,1); }
+.xpearned { font-size: 14px; font-weight: 600; margin-top: 9px; }
+.xpearned .plus { color: var(--right); font-weight: 800; }
+
+.sharebox { margin-top: 28px; }
+.sharerow { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 10px; }
+.sharebtn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 14px;
+  font-weight: 600; color: var(--ink); background: var(--card); border: 1.5px solid var(--line);
+  border-radius: 99px; padding: 9px 16px; cursor: pointer; text-decoration: none; }
+.sharebtn:hover { border-color: var(--ink); }
+.sharebtn svg { width: 16px; height: 16px; flex: none; }
+
+.errorbox { margin-top: 22px; padding: 14px 16px; border: 1.5px solid var(--wrong);
+  border-radius: 6px; color: var(--wrong); font-size: 14.5px; line-height: 1.5; }
+.back { background: none; border: none; font: inherit; font-weight: 600; font-size: 14px;
+  color: var(--ink-soft); cursor: pointer; padding: 0; margin-bottom: 22px; }
+.back:hover { color: var(--ink); }
+.hidden { display: none !important; }
+
+/* auth gate (mandatory sign-in) */
+#authGate { display: none; position: fixed; inset: 0; z-index: 100; background: var(--paper);
+  overflow-y: auto; padding: calc(28px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
+  align-items: center; justify-content: center; }
+.gatecard { width: 100%; max-width: 380px; margin: auto; text-align: center; }
+.gateh1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; line-height: 1.18; color: var(--ink); margin: 0 0 12px; }
+.gatelede { color: var(--ink-soft); font-size: 15px; line-height: 1.5; margin: 0 0 26px; }
+.gateoauth { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+  font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; border-radius: 8px;
+  padding: 13px; margin-bottom: 10px; border: 1.5px solid var(--ink); }
+.gateoauth svg { width: 18px; height: 18px; }
+.gateoauth.apple { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.gateoauth.google { background: var(--card); color: var(--ink); border-color: var(--line); }
+.gateoauth:hover { opacity: 0.92; }
+.gatediv { display: flex; align-items: center; gap: 12px; color: var(--ink-soft); font-size: 12.5px;
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin: 16px 0; }
+.gatediv::before, .gatediv::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.muted { color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+
+/* home coverage facts */
+.facts { display: grid; gap: 10px; margin-top: 24px; }
+.fact { display: flex; gap: 12px; align-items: flex-start; background: var(--card);
+  border: 1px solid var(--line); border-radius: 8px; padding: 13px 15px; }
+.fact .fic { flex: none; width: 30px; height: 30px; border-radius: 7px; background: var(--mark-soft);
+  display: flex; align-items: center; justify-content: center; }
+.fact .fic svg { width: 17px; height: 17px; stroke: var(--ink); }
+.fact .fb { font-size: 14px; line-height: 1.45; }
+.fact .fb strong { font-weight: 700; }
+.fact .fb span { color: var(--ink-soft); }
+
+/* stats + library */
+.statgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 15px; text-align: center; }
+.stat .num { font-family: 'Fraunces', serif; font-weight: 800; font-size: 30px; line-height: 1; }
+.stat .lbl { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
+.libitem { display: flex; gap: 13px; align-items: center; background: var(--card);
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+.libitem .body { flex: 1; min-width: 0; }
+.libitem .tt { font-weight: 600; font-size: 15px; }
+.libitem .mm { color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; }
+.libitem .scorepill { font-family: 'Fraunces', serif; font-weight: 800; font-size: 14px;
+  background: var(--paper-deep); border-radius: 99px; padding: 4px 11px; white-space: nowrap; }
+
+/* library book rows with grade ladder */
+.libbook { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+.libbook .litop { display: flex; gap: 13px; align-items: center; }
+.libbook .body { flex: 1; min-width: 0; }
+.libbook .tt { font-weight: 600; font-size: 15px; color: var(--ink); }
+.libbook .mm { color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; }
+.libbook .lastscore { text-align: center; flex: none; }
+.libbook .lastlbl { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.libbook .lastpct { font-family: 'Fraunces', serif; font-weight: 800; font-size: 19px; color: var(--ink); line-height: 1.1; }
+.ladderwrap { margin-top: 11px; }
+.ladderhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.laddlabel { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.quizmini { font: inherit; font-size: 12px; font-weight: 700; color: var(--ink); background: transparent;
+  border: 1.5px solid var(--line); border-radius: 99px; padding: 4px 13px; cursor: pointer; }
+.quizmini:hover { border-color: var(--ink); }
+.quizbar { width: 100%; margin-top: 11px; font: inherit; font-size: 13px; font-weight: 700;
+  color: var(--paper); background: var(--ink); border: 1.5px solid var(--ink); border-radius: 6px;
+  padding: 11px; cursor: pointer; text-align: center; }
+.quizbar:hover { opacity: 0.9; }
+.quizbar:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+.ladder { display: flex; gap: 5px; }
+.rung { flex: 1; text-align: center; font-family: 'Fraunces', serif; font-weight: 800; font-size: 12px;
+  color: var(--ink-soft); background: var(--paper-deep); border-radius: 5px; padding: 5px 0; }
+.rung.cur { flex: 1.6; font-size: 15px; color: #fff; }
+.rung.tgt { color: #c9a23a; background: #fbf3d6; }
+
+/* grade badges (S best → F worst) */
+.gradebadge { font-family: 'Fraunces', serif; font-weight: 800; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 7px;
+  color: #fff; }
+.gradebadge.sm { font-size: 15px; width: 30px; height: 30px; }
+.gradebadge.lg { font-size: 40px; width: 72px; height: 72px; border-radius: 12px; }
+.g-S { background: linear-gradient(135deg, #d4a017, #ffe45c); color: #3a2e00;
+  box-shadow: 0 0 0 2px var(--card), 0 0 14px rgba(255,200,40,0.55); }
+.g-A { background: #1f7a4d; } .g-B { background: #2f6fb3; } .g-C { background: #6a708a; }
+.g-D { background: #c07a2b; } .g-F { background: #b3422f; }
+.gradeline { display: flex; align-items: center; gap: 14px; margin: 6px 0 20px; }
+.gradeline .meta { font-size: 14px; line-height: 1.4; }
+.gradeline .meta strong { font-family: 'Fraunces', serif; font-size: 16px; }
+.gradechange { font-weight: 700; font-size: 13px; margin-top: 3px; }
+.gradechange.up { color: var(--right); } .gradechange.down { color: var(--wrong); }
+.gradechange.hold { color: var(--ink-soft); }
+.due { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--ink); background: var(--mark); border-radius: 99px; padding: 3px 9px; margin-left: 8px; }
+.achievements { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.ach { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 13px; }
+.ach.locked { opacity: 0.42; }
+.ach .ic { font-size: 22px; }
+.ach .nm { font-weight: 700; font-size: 13.5px; margin-top: 6px; }
+.ach .ds { color: var(--ink-soft); font-size: 12px; margin-top: 3px; line-height: 1.4; }
+
+.optgroup { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 22px; }
+.chip { font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--ink);
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 99px; padding: 8px 16px; }
+input.chip { -webkit-appearance: none; appearance: none; cursor: text; min-width: 96px; text-align: center; }
+#notifOpts.off { opacity: 0.4; pointer-events: none; }
+.plan { border: 1.5px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; background: var(--card); }
+.plan.current { border-color: var(--mark); box-shadow: 0 0 0 1.5px var(--mark); background: var(--mark-soft); }
+.plan .pname { font-weight: 800; font-size: 17px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.plan .pprice { font-weight: 700; color: var(--mark); font-size: 14px; }
+.plan .pcur { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; background: var(--mark); border-radius: 99px; padding: 3px 9px; }
+.plan ul { margin: 10px 0 14px; padding-left: 18px; }
+.plan li { font-size: 14px; color: var(--ink); margin-bottom: 5px; }
+.plan li::marker { color: var(--mark); }
+.plan .btn { width: 100%; background: var(--mark); border-color: var(--mark); color: #fff; }
+.plan .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-soft); }
+.usagebar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 10px; }
+.usagebar > span { display: block; height: 100%; background: var(--ink); }
+.usagerow { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; margin-top: 12px; }
+.usagerow .ulabel { color: var(--ink-soft); }
+.usagerow .uval { font-weight: 700; color: var(--ink); }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.settingrow { display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 16px 0; border-bottom: 1px solid var(--line); }
+.settingrow .label { font-weight: 600; font-size: 15px; }
+.settingrow .sub { color: var(--ink-soft); font-size: 13px; margin-top: 3px; }
+
+/* account / cloud sync */
+.acctfield { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: var(--card);
+  border: 1.5px solid var(--line); border-radius: 6px; padding: 11px 13px; margin-bottom: 9px; outline: none; }
+.acctfield:focus-visible { box-shadow: 0 0 0 3px var(--mark-soft); border-color: var(--ink); }
+.acctrow { display: flex; gap: 9px; flex-wrap: wrap; }
+.acctmsg { font-size: 13px; line-height: 1.45; margin-top: 10px; }
+.acctmsg.ok { color: var(--right); } .acctmsg.err { color: var(--wrong); }
+.acctmail { font-weight: 600; font-size: 15px; color: var(--ink); }
+.acctstatus { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+
+/* bottom nav */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: var(--card); border-top: 1px solid var(--line);
+  padding-top: 8px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  display: flex; }
+.tabbar .tab { flex: 1; background: none; border: none; cursor: pointer; padding: 6px 0;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-soft); font: inherit; }
+.tabbar .tab svg { width: 24px; height: 24px; }
+.tabbar .tab .tlbl { font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; }
+.tabbar .tab.on { color: var(--ink); }
+.tabbar .tab.on svg { stroke: var(--ink); }
+.tabbar .tab .badge-dot { position: relative; }
+.tabbar .tab .badge-dot::after { content: ""; position: absolute; top: -2px; right: -6px;
+  width: 8px; height: 8px; background: var(--wrong); border-radius: 99px; display: none; }
+.tabbar .tab.has-due .badge-dot::after { display: block; }
+</style>
+</head>
+<body>
+<div id="authGate">
+  <div class="gatecard">
+    <img class="brandlogo light" src="cortex-logo.jpg" alt="Cortex" style="height:40px;margin:0 auto 22px;" />
+    <img class="brandlogo dark" src="cortex-logo-dark.jpg" alt="Cortex" style="height:40px;margin:0 auto 22px;" />
+    <h1 class="gateh1">Remember more of <span class="hl">what you read</span></h1>
+    <p class="gatelede">Create a free account to start quizzing, track your grades, and sync across your devices.</p>
+    <button class="gateoauth apple" id="gateAppleBtn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.365 1.43c0 1.14-.42 2.2-1.13 2.98-.78.84-2.06 1.49-3.13 1.4-.13-1.1.42-2.27 1.08-3 .73-.82 2.06-1.43 3.18-1.38zM20.79 17.13c-.55 1.27-.82 1.84-1.53 2.97-.99 1.57-2.39 3.53-4.12 3.54-1.54.02-1.94-1.01-4.03-1-2.09.01-2.53 1.02-4.07 1-.93-.01-1.65-.71-2.39-1.78-2.39-3.4-4.08-9.62-1.71-13.83.84-1.49 2.34-2.44 3.97-2.46 1.58-.03 3.07 1.06 4.03 1.06.96 0 2.77-1.31 4.67-1.12.79.03 3.01.32 4.44 2.41-3.78 2.07-3.17 7.46.74 9.21z"/></svg>Continue with Apple</button>
+    <button class="gateoauth google" id="gateGoogleBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.6-.1-1.3-.2-1.9H12v3.6h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"/><path fill="#34A853" d="M12 22c2.7 0 4.9-.9 6.6-2.4l-3.2-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.7-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9z"/><path fill="#EA4335" d="M12 6.1c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.8 9.4 6.1 12 6.1z"/></svg>Continue with Google</button>
+    <div class="gatediv"><span>or with email</span></div>
+    <input class="acctfield" id="gateEmail" type="email" placeholder="Email" autocomplete="email" />
+    <input class="acctfield" id="gatePass" type="password" placeholder="Password" autocomplete="current-password" />
+    <div class="acctrow" style="margin-top:2px;"><button class="btn" id="gateInBtn" style="flex:1;">Sign in</button><button class="btn ghost" id="gateUpBtn" style="flex:1;">Create account</button></div>
+    <div class="acctmsg" id="gateMsg"></div>
+  </div>
+</div>
+<div class="shell">
+  <div class="brand"><img class="brandlogo light" src="cortex-logo.jpg" alt="Cortex" /><img class="brandlogo dark" src="cortex-logo-dark.jpg" alt="Cortex" />
+    <span class="rankbadge" id="rankBadge" title="Earn XP for every correct answer"><span class="lvl" id="badgeLvl"></span><span id="badgeRank"></span></span>
+  </div>
+
+  <!-- ===================== HOME (search + quiz flow) ===================== -->
+  <section id="tab-home">
+    <div id="view-search">
+      <h1>Did the book <em>actually</em> <span class="hl">stick</span>?</h1>
+      <p class="lede">Search any published title and get a quiz written on the spot to test what you remember. Or paste your own notes in the Notes tab.</p>
+      <div class="searchrow">
+        <input id="query" class="search" placeholder="Try “Project Hail Mary”" aria-label="Book title" />
+        <button id="searchBtn" class="btn">Search</button>
+      </div>
+      <div id="dueBanner" class="hidden" style="margin-top:18px;"></div>
+      <div id="coverageFacts" class="facts">
+        <div class="fact">
+          <span class="fic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+          <span class="fb"><strong>Find almost any book.</strong> <span>Search our library of +40 million titles.</span></span>
+        </div>
+        <div class="fact">
+          <span class="fic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <span class="fb"><strong>Turn your favourite books into everyday wisdom.</strong> <span>Stop forgetting what you read. Start living what you learn.</span></span>
+        </div>
+        <div class="fact">
+          <span class="fic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+          <span class="fb"><strong>Any book at all, via your notes.</strong> <span>Paste your own notes in the Notes tab to be quizzed on anything — including brand-new or niche reads.</span></span>
+        </div>
+      </div>
+      <div id="searchError" class="errorbox hidden" role="alert"></div>
+      <div id="results" class="results"></div>
+    </div>
+
+    <div id="view-generating" class="hidden">
+      <div class="loading">
+        <div class="pen" aria-hidden="true"></div>
+        <p id="genMsg"></p>
+      </div>
+    </div>
+
+    <div id="view-quiz" class="hidden">
+      <button id="quitBtn" class="back">← Quit quiz</button>
+      <div id="quizEyebrow" class="eyebrow"></div>
+      <div id="progress" class="progress" aria-hidden="true"></div>
+      <h2 id="qText" class="q"></h2>
+      <div id="opts" class="opts"></div>
+      <div id="explain" class="explain hidden"></div>
+      <div class="footrow">
+        <span id="count" class="count"></span>
+        <button id="nextBtn" class="btn hidden">Next question</button>
+      </div>
+    </div>
+
+    <div id="view-score" class="hidden">
+      <div id="scoreEyebrow" class="eyebrow"></div>
+      <div id="gradeBlock" class="gradeline hidden">
+        <span id="gradeBadgeBig" class="gradebadge lg">F</span>
+        <span class="meta"><strong id="gradeLabel"></strong><div id="gradeChange" class="gradechange"></div></span>
+      </div>
+      <div class="scorebig"><span id="scoreNum"></span><small id="scoreDen"></small></div>
+      <p class="verdictline"><span class="hl" id="verdict"></span></p>
+      <div id="levelUp" class="levelup hidden"></div>
+      <div class="xpblock">
+        <div class="xprow"><span id="xpRank"></span><span id="xpNumbers"></span></div>
+        <div class="xpbar"><div id="xpFill" class="xpfill"></div></div>
+        <div class="xpearned"><span class="plus" id="xpPlus"></span> <span id="xpDetail"></span></div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="reviewMissBtn" class="btn ghost hidden">Review my misses</button>
+        <button id="retryBtn" class="btn">New quiz</button>
+        <button id="anotherBtn" class="btn ghost">Done</button>
+      </div>
+      <div class="sharebox">
+        <div class="eyebrow">Share your result</div>
+        <div class="sharerow">
+          <button id="shareNative" class="sharebtn hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14"/></svg>Share…</button>
+          <a id="shareX" class="sharebtn" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.2h3.7l-8.1 9.3L24 22.8h-7.5l-5.9-7.7-6.7 7.7H.2l8.7-9.9L0 1.2h7.7l5.3 7 6-7Zm-1.3 19.4h2L6.6 3.3H4.4l13.2 17.3Z"/></svg>Post on X</a>
+          <a id="shareWhatsApp" class="sharebtn" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.2 1.6 6L0 24l6.2-1.6c1.8 1 3.7 1.5 5.8 1.5 6.6 0 12-5.4 12-12S18.6 0 12 0Zm0 21.8c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A9.7 9.7 0 0 1 2.2 12c0-5.4 4.4-9.8 9.8-9.8s9.8 4.4 9.8 9.8-4.4 9.8-9.8 9.8Zm5.4-7.3c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1a8 8 0 0 1-2.4-1.5 8.9 8.9 0 0 1-1.6-2c-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4l-.7-.5Z"/></svg>WhatsApp</a>
+          <a id="shareFacebook" class="sharebtn" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3v-3.5h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12Z"/></svg>Facebook</a>
+          <button id="shareCopy" class="sharebtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span id="copyLabel">Copy text</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== LIBRARY ===================== -->
+  <section id="tab-library" class="hidden">
+    <h2 class="sec">Your library</h2>
+    <div class="statgrid">
+      <div class="stat"><div class="num" id="stBooks">0</div><div class="lbl">Books</div></div>
+      <div class="stat"><div class="num" id="stStreak">0</div><div class="lbl">Day streak</div></div>
+      <div class="stat"><div class="num" id="stAvg">—</div><div class="lbl">Avg score</div></div>
+    </div>
+    <div id="dueSection"></div>
+    <div id="libList"></div>
+    <h2 class="sec" style="margin-top:34px;">Achievements</h2>
+    <div id="achList" class="achievements"></div>
+  </section>
+
+  <!-- ===================== NOTES ===================== -->
+  <section id="tab-notes" class="hidden">
+    <h2 class="sec">Quiz your own notes</h2>
+    <p class="lede">Paste highlights, lecture notes, or anything you've read. The quiz is built strictly from your text — so it works for any book, including brand-new or obscure ones.</p>
+    <input id="notesTitle" class="text" placeholder="Give it a name (e.g. “Atomic Habits — ch.1-3”)" style="margin-bottom:10px;" />
+    <textarea id="notesText" class="notes" placeholder="Paste your notes here…"></textarea>
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button id="notesQuizBtn" class="btn">Generate quiz from notes</button>
+      <button id="notesSaveBtn" class="btn ghost">Save for later</button>
+    </div>
+    <div id="notesError" class="errorbox hidden" role="alert"></div>
+    <div id="savedNotes" style="margin-top:28px;"></div>
+  </section>
+
+  <!-- ===================== SETTINGS ===================== -->
+  <section id="tab-settings" class="hidden">
+    <h2 class="sec">Settings</h2>
+
+    <div class="eyebrow">Account</div>
+    <div id="accountBox" style="margin-bottom: 26px;"></div>
+
+    <p class="muted" style="margin-bottom:20px;">Quiz difficulty isn't set here — it's earned. Each book gets a grade from F to S based on how you score, and the higher your grade, the harder that book's quizzes become.</p>
+    <div class="eyebrow">Questions per quiz</div>
+    <div class="optgroup" id="setLength">
+      <button class="chip" data-v="5">Quick · 5</button>
+      <button class="chip" data-v="8">Standard · 8</button>
+      <button class="chip" data-v="12">Deep · 12</button>
+    </div>
+    <div class="settingrow">
+      <div><div class="label">Dark theme</div><div class="sub">Easier on the eyes at night</div></div>
+      <button id="themeToggle" class="chip">Off</button>
+    </div>
+    <div class="settingrow">
+      <div><div class="label">Manage subscription</div><div class="sub" id="subRowSub">Free plan</div></div>
+      <button id="subOpenBtn" class="chip">Manage</button>
+    </div>
+    <div class="settingrow">
+      <div><div class="label">Notifications</div><div class="sub">Daily reminder and streak alerts</div></div>
+      <button id="notifOpenBtn" class="chip">Manage</button>
+    </div>
+    <div class="settingrow">
+      <div><div class="label">Help &amp; support</div><div class="sub">Get in touch if you need a hand</div></div>
+      <button id="helpOpenBtn" class="chip">Open</button>
+    </div>
+    <div class="settingrow">
+      <div><div class="label">Reset progress</div><div class="sub">Clears XP, library, streak, and saved notes</div></div>
+      <button id="resetBtn" class="chip" style="border-color:var(--wrong); color:var(--wrong);">Reset</button>
+    </div>
+    <p class="muted" style="margin-top:24px;">When you're signed in, your quiz history, grades, XP, and time spent in the app are saved to your account so they sync across devices. Streaks, saved notes, and settings stay on this device. Book titles and notes you quiz are sent to the server to generate questions.</p>
+
+    <div class="eyebrow" style="margin-top:30px;">About &amp; legal</div>
+    <div class="settingrow">
+      <div><div class="label">Privacy policy</div><div class="sub">How your data is used and stored</div></div>
+      <a href="privacy.html" class="chip" style="text-decoration:none; display:inline-block;">View</a>
+    </div>
+    <div class="settingrow">
+      <div><div class="label">Terms of service</div><div class="sub">The rules for using the app</div></div>
+      <a href="terms.html" class="chip" style="text-decoration:none; display:inline-block;">View</a>
+    </div>
+  </section>
+
+  <!-- ===================== NOTIFICATIONS (sub-page of Settings) ===================== -->
+  <section id="tab-notifications" class="hidden">
+    <button id="notifBack" class="chip" style="margin-bottom:18px; display:inline-flex; align-items:center; gap:7px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Settings
+    </button>
+    <h2 class="sec">Notifications</h2>
+    <p class="muted" style="margin-bottom:22px;">Reminders are delivered by your device. They work in the installed app; in a web browser they may be limited or unavailable.</p>
+
+    <div class="settingrow">
+      <div><div class="label">Enable notifications</div><div class="sub">Allow Cortex to send you reminders</div></div>
+      <button id="notifMaster" class="chip">Off</button>
+    </div>
+
+    <div id="notifOpts">
+      <div class="settingrow">
+        <div><div class="label">Daily reminder</div><div class="sub">A nudge to take a quiz each day</div></div>
+        <button id="notifDaily" class="chip">On</button>
+      </div>
+      <div class="settingrow">
+        <div><div class="label">Reminder time</div><div class="sub">When the daily nudge arrives</div></div>
+        <input id="notifTime" type="time" class="chip" value="19:00" />
+      </div>
+      <div class="settingrow">
+        <div><div class="label">Streak alerts</div><div class="sub">Warn me in the evening before I lose a streak</div></div>
+        <button id="notifStreak" class="chip">On</button>
+      </div>
+    </div>
+    <div id="notifMsg" class="muted" style="margin-top:16px;"></div>
+  </section>
+
+  <!-- ===================== HELP & SUPPORT (sub-page of Settings) ===================== -->
+  <section id="tab-help" class="hidden">
+    <button id="helpBack" class="chip" style="margin-bottom:18px; display:inline-flex; align-items:center; gap:7px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Settings
+    </button>
+    <h2 class="sec">Help &amp; support</h2>
+    <p class="muted" style="margin-bottom:22px;">Have a question, hit a problem, or found a bug? Send me an email and I'll get back to you, usually within 24 hours.</p>
+
+    <div class="settingrow">
+      <div><div class="label">Email support</div><div class="sub">Eddie.kung1@icloud.com</div></div>
+      <a href="mailto:Eddie.kung1@icloud.com?subject=Cortex%20support" class="chip" style="text-decoration:none; display:inline-block;">Email</a>
+    </div>
+  </section>
+
+  <!-- ===================== MANAGE SUBSCRIPTION (sub-page of Settings) ===================== -->
+  <section id="tab-subscription" class="hidden">
+    <button id="subBack" class="chip" style="margin-bottom:18px; display:inline-flex; align-items:center; gap:7px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Settings
+    </button>
+    <h2 class="sec">Manage subscription</h2>
+    <div id="subUsage" class="card" style="margin:6px 0 22px; padding:16px;"></div>
+    <div id="subPlans"></div>
+    <div id="subMsg" class="muted" style="margin-top:16px;"></div>
+    <button id="subRestore" class="btn ghost full" style="margin-top:14px;">Restore purchases</button>
+    <p class="muted" style="margin-top:16px; font-size:12px; line-height:1.55;">Paid plans are billed monthly and renew automatically unless cancelled at least 24 hours before the period ends. Payment is charged to your App Store or Google Play account on confirmation. Manage or cancel anytime in your store account settings. By subscribing you agree to our <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p>
+    <p class="muted" style="margin-top:14px; font-size:13px;">Pro and Unlimited include unlimited notes quizzes and spaced-repetition reviews. On the Free plan, book quizzes, reviews, and notes quizzes each have a monthly limit.</p>
+  </section>
+</div>
+
+<!-- bottom nav -->
+<nav class="tabbar">
+  <button class="tab on" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="tlbl">Home</span></button>
+  <button class="tab" data-tab="library"><span class="badge-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="tlbl">Library</span></button>
+  <button class="tab" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="tlbl">Notes</span></button>
+  <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="tlbl">Settings</span></button>
+</nav>
+
+<script>
+// ============================================================================
+// API_BASE — where the quiz server lives.
+//   Web (served by server.js): leave "".  iOS app (Capacitor): set Render URL.
+// ============================================================================
+const API_BASE = "https://retain-quiz.onrender.com";
+
+// ============================================================================
+// SUPABASE — optional cloud sync. Paste your Project URL and *publishable*
+// (or legacy anon) key here. Leave both "" to keep the app fully on-device.
+// The publishable key is safe to ship; never put the secret/service_role key here.
+// ============================================================================
+const SUPABASE_URL = "https://wjnourzxkqisujvwidnp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_C-65G08kfjq2D7AcYsMgkQ_3TQ1l3zU";
+
+// ============================================================================
+// REVENUECAT — in-app purchases. Paste your *public SDK keys* (App Store starts
+// "appl_", Google Play "goog_"). Leave "" to keep purchases in local test mode.
+// These public keys are safe to ship. Configure products/entitlements in the
+// RevenueCat dashboard — see REVENUECAT_SETUP.md. The ENTITLEMENT ids below must
+// match the entitlement identifiers you create in RevenueCat.
+// ============================================================================
+const RC_APPLE_API_KEY = "appl_ufjiwmLfyLYIknljTufEWIbonKu";
+const RC_GOOGLE_API_KEY = "";  // e.g. "goog_xxxxxxxxxxxxxxxxxxxx"
+// Map your RevenueCat ENTITLEMENT identifiers to Cortex tiers (highest first).
+const RC_ENTITLEMENTS = [
+  { id: "unlimited", tier: "unlimited" },
+  { id: "pro",       tier: "pro" },
+];
+// Map Cortex tiers to the RevenueCat PACKAGE identifier the user buys.
+const RC_PACKAGES = { pro: "pro_monthly", unlimited: "unlimited_monthly" };
+
+const $ = (id) => document.getElementById(id);
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  raw(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+};
+const DAY = 86400000;
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+// ---------- progression ----------
+const XP_PER_CORRECT = 25, PERFECT_BONUS = 75;
+const RANKS = ["Skimmer","Browser","Bookworm","Page Turner","Annotator","Plot Keeper","Librarian","Archivist","Bibliophile","Literary Legend"];
+const xpToAdvance = (lvl) => 400 + (lvl - 1) * 200;
+function levelFromXp(total) { let level = 1, rem = total; while (rem >= xpToAdvance(level)) { rem -= xpToAdvance(level); level++; } return { level, into: rem, need: xpToAdvance(level) }; }
+const rankFor = (lvl) => RANKS[Math.min(Math.floor((lvl - 1) / 3), RANKS.length - 1)];
+const getXp = () => LS.get("retain:xp", 0);
+const setXp = (v) => LS.set("retain:xp", v);
+function renderBadge() { const { level } = levelFromXp(getXp()); $("badgeLvl").textContent = "LVL " + level; $("badgeRank").textContent = rankFor(level); }
+
+// ---------- asked-question memory ----------
+const bookKey = (b) => "retain:asked:" + (b.key || (b.title + "|" + (b.author || "")));
+const getAsked = (b) => LS.get(bookKey(b), []);
+function rememberAsked(b, qs) { LS.set(bookKey(b), getAsked(b).concat(qs.map((q) => q.question)).slice(-80)); }
+
+// ---------- library + history ----------
+function libId(b) { return b.key || (b.title + "|" + (b.author || "")); }
+function getLibrary() { return LS.get("retain:library", {}); }
+function recordAttempt(b, score, total) {
+  if (!b || b.mode === "review") return;
+  const lib = getLibrary(); const id = libId(b);
+  const rec = lib[id] || { id, title: b.title, author: b.author || null, year: b.year || null, cover: b.cover || null, key: b.key || null, attempts: [], mode: b.mode || "book" };
+  rec.attempts.push({ date: Date.now(), score, total });
+  rec.last = Date.now();
+  lib[id] = rec; LS.set("retain:library", lib);
+}
+
+// ---------- spaced repetition (free — reuses stored missed questions) ----------
+function srsKey(b) { return "retain:srs:" + libId(b); }
+function scheduleMisses(b, missed) {
+  if (!b || b.mode === "review" || !missed.length) return;
+  const store = LS.get(srsKey(b), []);
+  for (const q of missed) store.push({ q, due: Date.now() + DAY, step: 0 });
+  LS.set(srsKey(b), store.slice(-100));
+}
+function dueItems() {
+  const out = [];
+  const lib = getLibrary();
+  for (const id of Object.keys(lib)) {
+    const store = LS.get("retain:srs:" + id, []);
+    const due = store.filter((it) => it.due <= Date.now());
+    if (due.length) out.push({ id, rec: lib[id], count: due.length });
+  }
+  return out;
+}
+const INTERVALS = [DAY, 3 * DAY, 7 * DAY, 16 * DAY, 35 * DAY];
+function gradeSrs(b, question, correct) {
+  const k = srsKey(b); const store = LS.get(k, []);
+  const it = store.find((x) => x.q.question === question);
+  if (!it) return;
+  if (correct) { it.step = Math.min(it.step + 1, INTERVALS.length - 1); it.due = Date.now() + INTERVALS[it.step];
+    if (it.step >= INTERVALS.length - 1) { LS.set(k, store.filter((x) => x !== it)); return; } }
+  else { it.step = 0; it.due = Date.now() + DAY; }
+  LS.set(k, store);
+}
+
+// ---------- streak ----------
+function bumpStreak() {
+  const s = LS.get("retain:streak", { count: 0, last: null });
+  const t = todayStr();
+  if (s.last === t) return s.count;
+  const yest = new Date(Date.now() - DAY).toISOString().slice(0, 10);
+  s.count = s.last === yest ? s.count + 1 : 1;
+  s.last = t; LS.set("retain:streak", s); return s.count;
+}
+const getStreak = () => LS.get("retain:streak", { count: 0 }).count;
+
+// ---------- notifications (Capacitor LocalNotifications on device; limited/no-op on web) ----------
+const NOTIF_DAILY_ID = 1001, NOTIF_STREAK_ID = 1002;
+const LN = () => window.Capacitor?.Plugins?.LocalNotifications || null;
+function getNotif() { return LS.get("retain:notif", { enabled: false, dailyOn: true, time: "19:00", streakOn: true }); }
+function setNotif(n) { LS.set("retain:notif", n); }
+
+async function notifEnable() {
+  const ln = LN();
+  if (!ln) { const n = getNotif(); n.enabled = true; setNotif(n); return { ok: true, web: true }; }
+  try {
+    const perm = await ln.requestPermissions();
+    if (!perm || perm.display !== "granted") return { ok: false };
+    const n = getNotif(); n.enabled = true; setNotif(n);
+    await rescheduleAll();
+    return { ok: true };
+  } catch { return { ok: false }; }
+}
+
+async function notifDisable() {
+  const n = getNotif(); n.enabled = false; setNotif(n);
+  const ln = LN(); if (!ln) return;
+  try { await ln.cancel({ notifications: [{ id: NOTIF_DAILY_ID }, { id: NOTIF_STREAK_ID }] }); } catch {}
+}
+
+// (re)build the daily repeating reminder at the chosen time
+async function scheduleDaily() {
+  const ln = LN(); if (!ln) return;
+  const n = getNotif();
+  try { await ln.cancel({ notifications: [{ id: NOTIF_DAILY_ID }] }); } catch {}
+  if (!n.enabled || !n.dailyOn) return;
+  const [h, m] = (n.time || "19:00").split(":").map((x) => parseInt(x, 10));
+  try {
+    await ln.schedule({ notifications: [{
+      id: NOTIF_DAILY_ID,
+      title: "Time to read & remember",
+      body: "Take a quick quiz and keep what you've read fresh.",
+      schedule: { on: { hour: h, minute: m }, repeats: true, allowWhileIdle: true },
+    }] });
+  } catch {}
+}
+
+// schedule a one-shot streak warning for this evening — only if the streak is actually at risk
+async function syncStreakNotification() {
+  const ln = LN(); if (!ln) return;
+  const n = getNotif();
+  try { await ln.cancel({ notifications: [{ id: NOTIF_STREAK_ID }] }); } catch {}
+  if (!n.enabled || !n.streakOn) return;
+  const st = LS.get("retain:streak", { count: 0, last: null });
+  if (!st.count || st.last === todayStr()) return; // no streak, or today's quiz already done
+  const now = new Date();
+  const when = new Date(); when.setHours(20, 0, 0, 0);   // 8pm today
+  if (when <= now) when.setTime(now.getTime() + 5 * 60000); // if past 8pm, nudge in 5 min (still today)
+  if (when.getDate() !== now.getDate()) return;          // safety: never push into tomorrow
+  try {
+    await ln.schedule({ notifications: [{
+      id: NOTIF_STREAK_ID,
+      title: "Don't break your streak!",
+      body: "Your " + st.count + "-day streak ends at midnight — take a quick quiz to keep it going.",
+      schedule: { at: when, allowWhileIdle: true },
+    }] });
+  } catch {}
+}
+
+async function rescheduleAll() { await scheduleDaily(); await syncStreakNotification(); }
+
+function renderNotifications() {
+  const n = getNotif();
+  $("notifMaster").textContent = n.enabled ? "On" : "Off";
+  $("notifMaster").classList.toggle("on", n.enabled);
+  $("notifDaily").textContent = n.dailyOn ? "On" : "Off";
+  $("notifDaily").classList.toggle("on", n.dailyOn);
+  $("notifStreak").textContent = n.streakOn ? "On" : "Off";
+  $("notifStreak").classList.toggle("on", n.streakOn);
+  $("notifTime").value = n.time || "19:00";
+  $("notifOpts").classList.toggle("off", !n.enabled);
+  $("notifMsg").textContent = LN() ? "" : "You're using the web version — scheduled reminders are only available in the installed app.";
+}
+
+function openNotifications() {
+  TABS.forEach((t) => $("tab-" + t).classList.add("hidden"));
+  $("tab-help")?.classList.add("hidden");
+  $("tab-subscription")?.classList.add("hidden");
+  $("tab-notifications").classList.remove("hidden");
+  renderNotifications();
+  window.scrollTo(0, 0);
+}
+
+function openHelp() {
+  TABS.forEach((t) => $("tab-" + t).classList.add("hidden"));
+  $("tab-notifications")?.classList.add("hidden");
+  $("tab-subscription")?.classList.add("hidden");
+  $("tab-help").classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+
+// ---------- subscription, monthly book-quiz counter & entitlement ----------
+const SUB_PLANS = {
+  free:      { name: "Free",      price: "$0",       sub: "Free plan",            limits: { book: 3,        notes: 5,        review: 10 } },
+  pro:       { name: "Pro",       price: "$4.99/mo", sub: "Pro · 30 book quizzes/mo", limits: { book: 30,       notes: Infinity, review: Infinity } },
+  unlimited: { name: "Unlimited", price: "$9.99/mo", sub: "Unlimited",            limits: { book: Infinity, notes: Infinity, review: Infinity } },
+};
+function getSub() { const t = LS.get("retain:sub", { tier: "free" }).tier; return SUB_PLANS[t] ? t : "free"; }
+function setSub(tier) { LS.set("retain:sub", { tier: SUB_PLANS[tier] ? tier : "free" }); }
+function curMonth() { return new Date().toISOString().slice(0, 7); } // YYYY-MM
+function getUsage() {
+  const u = LS.get("retain:quizcount", { month: curMonth(), book: 0, notes: 0, review: 0 });
+  return u.month === curMonth() ? { book: 0, notes: 0, review: 0, ...u } : { month: curMonth(), book: 0, notes: 0, review: 0 };
+}
+function usedFor(kind) { return getUsage()[kind] || 0; }
+function limitFor(kind) { return SUB_PLANS[getSub()].limits[kind]; }
+function canUse(kind) { return usedFor(kind) < limitFor(kind); }
+function incUsage(kind) { const u = getUsage(); u[kind] = (u[kind] || 0) + 1; LS.set("retain:quizcount", u); renderSubRow(); }
+
+// stable identity for the server-side per-account counter
+function subAcctId() {
+  if (typeof sbUser !== "undefined" && sbUser && sbUser.id) return sbUser.id;
+  let id = LS.get("retain:deviceid", null);
+  if (!id) { id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36); LS.set("retain:deviceid", id); }
+  return id;
+}
+
+function renderSubRow() { const el = $("subRowSub"); if (el) el.textContent = SUB_PLANS[getSub()].sub; }
+
+function renderSubscription() {
+  const tier = getSub();
+  const rows = [["book", "Book quizzes"], ["review", "Reviews"], ["notes", "Notes quizzes"]];
+  let usageHtml = '<div class="label" style="margin-bottom:4px;">This month</div>';
+  rows.forEach(([k, label]) => {
+    const lim = limitFor(k), u = usedFor(k);
+    const txt = lim === Infinity ? "Unlimited" : u + " of " + lim + " used";
+    usageHtml += '<div class="usagerow"><span class="ulabel">' + label + '</span><span class="uval">' + txt + "</span></div>";
+    if (lim !== Infinity) {
+      const pct = Math.min(100, Math.round((u / lim) * 100));
+      usageHtml += '<div class="usagebar"><span style="width:' + pct + '%"></span></div>';
+    }
+  });
+  usageHtml += '<div class="sub" style="margin-top:12px;">Resets on the 1st of each month</div>';
+  $("subUsage").innerHTML = usageHtml;
+  const order = ["free", "pro", "unlimited"];
+  const feats = {
+    free: ["3 book quizzes per month", "10 spaced-repetition reviews per month", "5 notes-based quizzes per month"],
+    pro: ["30 book quizzes per month", "Unlimited notes &amp; reviews", "All difficulty levels &amp; lengths"],
+    unlimited: ["Unlimited book quizzes", "Unlimited notes &amp; reviews", "Everything in Pro"],
+  };
+  $("subPlans").innerHTML = order.map((t) => {
+    const p = SUB_PLANS[t], isCur = t === tier;
+    const btn = isCur ? "" : '<button class="btn full' + (t === "free" ? " ghost" : "") + '" data-plan="' + t + '">' +
+      (t === "free" ? "Switch to Free" : "Choose " + p.name) + "</button>";
+    return '<div class="plan' + (isCur ? " current" : "") + '"><div class="pname">' + p.name +
+      ' <span class="pprice">' + planPrice(t) + "</span>" + (isCur ? ' <span class="pcur">Current</span>' : "") +
+      "</div><ul>" + feats[t].map((f) => "<li>" + f + "</li>").join("") + "</ul>" + btn + "</div>";
+  }).join("");
+  $("subPlans").querySelectorAll("button[data-plan]").forEach((b) => b.onclick = () => choosePlan(b.dataset.plan));
+  $("subMsg").textContent = "";
+}
+
+function choosePlan(tier) {
+  haptic();
+  if (rcLive()) {
+    if (tier === "free") { $("subMsg").textContent = "To change or cancel a paid plan, manage your subscription in your App Store / Google Play account settings."; return; }
+    rcPurchase(tier); return;
+  }
+  // Test mode (web preview or no API keys set): switch locally so tiers/limits work end-to-end.
+  setSub(tier);
+  $("subMsg").textContent = tier === "free"
+    ? "Switched to the Free plan."
+    : "You're on " + SUB_PLANS[tier].name + ". (Test mode — connect in-app purchase before release.)";
+  renderSubscription(); renderSubRow();
+}
+
+async function openSubscription() {
+  TABS.forEach((t) => $("tab-" + t).classList.add("hidden"));
+  $("tab-notifications")?.classList.add("hidden");
+  $("tab-help")?.classList.add("hidden");
+  $("tab-subscription").classList.remove("hidden");
+  renderSubscription();
+  window.scrollTo(0, 0);
+  if (rcLive()) { await rcLoadOfferings(); renderSubscription(); } // refresh with live store prices
+}
+
+function showLimitReached(kind) {
+  openSubscription();
+  const limit = limitFor(kind);
+  const label = kind === "book" ? "book quizzes" : kind === "notes" ? "notes quizzes" : "reviews";
+  $("subMsg").textContent = "You've used all " + (limit === Infinity ? "" : limit + " ") + label +
+    " on your plan this month. Upgrade for more, or come back next month.";
+}
+
+// ---------- RevenueCat (real in-app purchases on device) ----------
+const RC = () => window.Capacitor?.Plugins?.Purchases || null;
+const rcLive = () => !!RC() && !!(RC_APPLE_API_KEY || RC_GOOGLE_API_KEY);
+let rcOfferings = null, rcReady = false;
+
+function rcTierFromInfo(info) {
+  const active = (info && info.entitlements && info.entitlements.active) || {};
+  for (const e of RC_ENTITLEMENTS) if (active[e.id]) return e.tier; // highest first
+  return "free";
+}
+function applyCustomerInfo(info) {
+  setSub(rcTierFromInfo(info)); renderSubRow();
+  if (!$("tab-subscription").classList.contains("hidden")) renderSubscription();
+}
+
+async function initRevenueCat() {
+  if (!rcLive()) return;
+  try {
+    const isApple = window.Capacitor?.getPlatform?.() === "ios";
+    const apiKey = isApple ? RC_APPLE_API_KEY : RC_GOOGLE_API_KEY;
+    if (!apiKey) return;
+    await RC().configure({ apiKey, appUserID: subAcctId() });
+    rcReady = true;
+    const { customerInfo } = await RC().getCustomerInfo();
+    applyCustomerInfo(customerInfo);
+  } catch (e) { /* keep whatever tier is stored */ }
+}
+
+async function rcLoadOfferings() {
+  if (!rcLive()) return null;
+  try { const res = await RC().getOfferings(); rcOfferings = res && res.current ? res.current : null; return rcOfferings; }
+  catch { return null; }
+}
+function rcPackageFor(tier) {
+  const id = RC_PACKAGES[tier];
+  const pkgs = (rcOfferings && rcOfferings.availablePackages) || [];
+  return pkgs.find((p) => p.identifier === id) || pkgs.find((p) => p.product && p.product.identifier === id) || null;
+}
+function planPrice(t) {
+  if (t === "free") return "$0";
+  const pkg = rcPackageFor(t);
+  return pkg && pkg.product && pkg.product.priceString ? pkg.product.priceString + "/mo" : SUB_PLANS[t].price;
+}
+
+async function rcPurchase(tier) {
+  const pkg = rcPackageFor(tier);
+  if (!pkg) { $("subMsg").textContent = "That plan isn't available right now — please try again shortly."; return; }
+  try {
+    $("subMsg").textContent = "Opening checkout…";
+    const res = await RC().purchasePackage({ aPackage: pkg });
+    applyCustomerInfo(res.customerInfo);
+    $("subMsg").textContent = "You're on " + SUB_PLANS[getSub()].name + ". Thanks!";
+  } catch (e) {
+    if (e && (e.userCancelled || /cancel/i.test(e.message || ""))) { $("subMsg").textContent = ""; return; }
+    $("subMsg").textContent = "Purchase didn't complete. " + ((e && e.message) || "Please try again.");
+  }
+}
+async function rcRestore() {
+  if (!rcLive()) { $("subMsg").textContent = "Restoring purchases is only available in the installed app."; return; }
+  try {
+    $("subMsg").textContent = "Restoring…";
+    const res = await RC().restorePurchases();
+    applyCustomerInfo(res.customerInfo);
+    $("subMsg").textContent = "Purchases restored — you're on " + SUB_PLANS[getSub()].name + ".";
+  } catch { $("subMsg").textContent = "Couldn't restore purchases. Please try again."; }
+}
+
+// ---------- achievements ----------
+const ACHIEVEMENTS = [
+  { id: "first", ic: "📖", nm: "First Read", ds: "Complete your first quiz", test: (s) => s.totalQuizzes >= 1 },
+  { id: "perfect", ic: "💯", nm: "Total Recall", ds: "Score 100% on a quiz", test: (s) => s.hadPerfect },
+  { id: "five", ic: "📚", nm: "Shelf Builder", ds: "Quiz 5 different books", test: (s) => s.bookCount >= 5 },
+  { id: "streak3", ic: "🔥", nm: "On a Roll", ds: "3-day streak", test: (s) => s.streak >= 3 },
+  { id: "streak7", ic: "⚡", nm: "Bookish Habit", ds: "7-day streak", test: (s) => s.streak >= 7 },
+  { id: "notes", ic: "✍️", nm: "In Your Words", ds: "Quiz your own notes", test: (s) => s.usedNotes },
+  { id: "review", ic: "🔁", nm: "Spaced Out", ds: "Complete a review session", test: (s) => s.didReview },
+  { id: "lvl5", ic: "🏆", nm: "Page Turner", ds: "Reach level 5", test: (s) => s.level >= 5 },
+];
+function getFlags() { return LS.get("retain:flags", { hadPerfect: false, usedNotes: false, didReview: false, totalQuizzes: 0 }); }
+function setFlags(f) { LS.set("retain:flags", f); }
+function statsSnapshot() {
+  const lib = getLibrary(); const f = getFlags();
+  const all = Object.values(lib).flatMap((r) => r.attempts);
+  const avg = all.length ? Math.round(all.reduce((a, x) => a + x.score / x.total, 0) / all.length * 100) : null;
+  return { bookCount: Object.keys(lib).length, totalQuizzes: f.totalQuizzes, hadPerfect: f.hadPerfect,
+    usedNotes: f.usedNotes, didReview: f.didReview, streak: getStreak(), level: levelFromXp(getXp()).level, avg };
+}
+function unlockedAchievements() { const s = statsSnapshot(); return ACHIEVEMENTS.map((a) => ({ ...a, on: a.test(s) })); }
+
+// ---------- per-book grade (S best → F worst; drives difficulty) ----------
+const GRADES = ["F", "D", "C", "B", "A", "S"]; // index 0..5, higher = better & harder
+const GRADE_DESC = {
+  F: "Just getting started — easy questions.",
+  D: "Warming up — straightforward questions.",
+  C: "Solid footing — standard difficulty.",
+  B: "Sharp — challenging questions.",
+  A: "Expert — hard questions on fine detail.",
+  S: "Mastery — near-impossible questions.",
+};
+function getGrades() { return LS.get("retain:grades", {}); }
+function getGrade(b) { return getGrades()[libId(b)] || "F"; }
+function setGrade(b, g) { const all = getGrades(); all[libId(b)] = g; LS.set("retain:grades", all); }
+// Returns { from, to, dir } after applying a quiz result at the current grade.
+function updateGrade(b, pct) {
+  const from = getGrade(b);
+  let idx = GRADES.indexOf(from);
+  let dir = "hold";
+  if (pct >= 80 && idx < GRADES.length - 1) { idx++; dir = "up"; }
+  else if (pct <= 35 && idx > 0) { idx--; dir = "down"; }
+  const to = GRADES[idx];
+  setGrade(b, to);
+  return { from, to, dir };
+}
+function gradeBadgeHtml(letter, size) { return `<span class="gradebadge ${size} g-${letter}">${letter}</span>`; }
+const GRADE_BG = { F: "#b3422f", D: "#c07a2b", C: "#6a708a", B: "#2f6fb3", A: "#1f7a4d", S: "linear-gradient(135deg,#d4a017,#ffe45c)" };
+const GRADE_FG = { F: "#fff", D: "#fff", C: "#fff", B: "#fff", A: "#fff", S: "#3a2e00" };
+// Full F→S ladder with the current grade highlighted; S shown as a faint target when not yet reached.
+function ladderHtml(grade) {
+  const idx = GRADES.indexOf(grade);
+  const label = grade === "S" ? "Your grade · mastered"
+    : idx === GRADES.length - 2 ? "Your grade · one rung from S"
+    : "Your grade · keep climbing";
+  const rungs = GRADES.map((g) => {
+    if (g === grade) {
+      const shadow = g === "S" ? "box-shadow:0 0 10px rgba(255,200,40,0.5);" : "box-shadow:0 0 0 2px " + GRADE_BG[g] + "40;";
+      return `<span class="rung cur" style="background:${GRADE_BG[g]};color:${GRADE_FG[g]};${shadow}">${g}</span>`;
+    }
+    if (g === "S") return `<span class="rung tgt">S</span>`;
+    return `<span class="rung">${g}</span>`;
+  }).join("");
+  return `<div class="ladderwrap"><div class="ladderhead"><span class="laddlabel">${label}</span></div><div class="ladder">${rungs}</div></div>`;
+}
+
+// ---------- settings ----------
+function getSettings() { return LS.get("retain:settings", { length: 8, theme: "light" }); }
+function setSettings(s) { LS.set("retain:settings", s); applyTheme(); }
+function applyTheme() { document.documentElement.setAttribute("data-theme", getSettings().theme === "dark" ? "dark" : "light"); }
+
+// ---------- saved notes ----------
+const getSavedNotes = () => LS.get("retain:notes", []);
+function saveNote(title, text) { const n = getSavedNotes(); n.unshift({ id: Date.now(), title: title || "Untitled notes", text, created: Date.now() }); LS.set("retain:notes", n.slice(0, 50)); }
+function deleteNote(id) { LS.set("retain:notes", getSavedNotes().filter((n) => n.id !== id)); }
+
+// ---------- haptics (works on native via plugin; harmless no-op on web) ----------
+function haptic() { try { if (window.navigator.vibrate) navigator.vibrate(30); if (window.Capacitor?.Plugins?.Haptics) window.Capacitor.Plugins.Haptics.impact({ style: "MEDIUM" }); } catch {} }
+
+// ============================ NAVIGATION ============================
+const TABS = ["home", "library", "notes", "settings"];
+function go(tab) {
+  TABS.forEach((t) => $("tab-" + t).classList.toggle("hidden", t !== tab));
+  $("tab-notifications")?.classList.add("hidden");
+  $("tab-help")?.classList.add("hidden");
+  $("tab-subscription")?.classList.add("hidden");
+  document.querySelectorAll(".tabbar .tab").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+  if (tab === "library") renderLibrary();
+  if (tab === "notes") renderSavedNotes();
+  if (tab === "settings") renderSettings();
+  if (tab === "home") refreshDueBanner();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll(".tabbar .tab").forEach((b) => b.addEventListener("click", () => go(b.dataset.tab)));
+
+// ============================ QUIZ STATE ============================
+let book = null, questions = [], qIndex = 0, picked = null, score = 0, missedThisQuiz = [];
+
+// ---------- search ----------
+async function searchBooks() {
+  const q = $("query").value.trim(); if (!q) return;
+  $("searchBtn").disabled = true; $("searchBtn").textContent = "Searching…";
+  $("searchError").classList.add("hidden"); $("results").innerHTML = "";
+  try {
+    const url = "https://openlibrary.org/search.json?title=" + encodeURIComponent(q) + "&limit=8&fields=title,author_name,first_publish_year,cover_i,key";
+    const res = await fetch(url); if (!res.ok) throw new Error();
+    renderResults((await res.json()).docs || []);
+  } catch { showErr("searchError", "The book search didn't respond. Check your connection and try again."); }
+  finally { $("searchBtn").disabled = false; $("searchBtn").textContent = "Search"; }
+}
+function showErr(id, msg) { const el = $(id); el.textContent = msg; el.classList.remove("hidden"); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+function renderResults(docs) {
+  $("coverageFacts").classList.add("hidden");
+  const box = $("results"); box.innerHTML = "";
+  const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = docs.length ? "Pick your book" : "No matches"; box.appendChild(eb);
+  if (!docs.length) { const p = document.createElement("p"); p.className = "lede"; p.textContent = "Nothing found. Check spelling or try a shorter title."; box.appendChild(p); return; }
+  for (const d of docs) {
+    const b = { title: d.title, author: (d.author_name && d.author_name[0]) || null, year: d.first_publish_year || null, cover: d.cover_i || null, key: d.key || null, mode: "book" };
+    const card = document.createElement("button"); card.className = "bookcard";
+    const cov = b.cover ? '<img class="cover" alt="" src="https://covers.openlibrary.org/b/id/' + b.cover + '-M.jpg" />' : '<div class="cover blank" aria-hidden="true">' + escapeHtml((b.title || "¶").charAt(0)) + "</div>";
+    card.innerHTML = cov + '<span><span class="booktitle">' + escapeHtml(b.title) + '</span><span class="bookmeta">' + escapeHtml(b.author || "Unknown author") + (b.year ? " · " + b.year : "") + "</span></span>";
+    card.addEventListener("click", () => generateQuiz(b));
+    box.appendChild(card);
+  }
+}
+
+// ---------- quiz generation ----------
+async function generateQuiz(b, opts = {}) {
+  if (!API_BASE && location.protocol !== "http:" && location.protocol !== "https:") {
+    go("home"); showErr("searchError", "This app build has no server configured. Set API_BASE in index.html to your Render URL, then rebuild."); return;
+  }
+  book = b; go("home");
+  const kind = b.mode === "notes" ? "notes" : "book";
+  if (!canUse(kind)) { showLimitReached(kind); return; }
+  const s = getSettings();
+  const grade = b.mode === "review" ? "C" : getGrade(b);
+  $("genMsg").innerHTML = b.mode === "notes"
+    ? "Building questions from your notes…"
+    : "Writing your <strong>grade " + grade + "</strong> quiz on <strong>" + escapeHtml(b.title) + "</strong>… give it up to a minute.";
+  showView("generating");
+  try {
+    const res = await fetch(API_BASE + "/api/quiz", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: b.mode === "notes" ? "notes" : "book",
+        title: b.title, author: b.author, year: b.year,
+        notes: b.notes || "", difficulty: grade,
+        count: opts.count || s.length, avoid: getAsked(b),
+        acctId: subAcctId(), tier: getSub(),
+      }),
+    });
+    const data = await res.json();
+    if (res.status === 402 || data.limit) { showLimitReached(kind); if (data.error) $("subMsg").textContent = data.error; return; }
+    if (data.error) throw new Error(data.error);
+    if (!data.known) { go("home"); showView("search"); showErr("searchError", data.reason || "Not enough reliable detail could be found — so no quiz was invented. Try another title."); return; }
+    questions = data.questions; rememberAsked(b, questions);
+    incUsage(kind);
+    startQuiz();
+  } catch (err) { go("home"); showView("search"); showErr("searchError", err.message || "Quiz generation hit a snag. Try once more."); }
+}
+
+// review quiz: built from due SRS items, no API call
+function startReview() {
+  const items = [];
+  const lib = getLibrary();
+  for (const id of Object.keys(lib)) {
+    const store = LS.get("retain:srs:" + id, []);
+    for (const it of store) if (it.due <= Date.now()) items.push({ ...it.q, _srcId: id, _rec: lib[id] });
+  }
+  if (!items.length) return;
+  if (!canUse("review")) { showLimitReached("review"); return; }
+  incUsage("review");
+  for (let i = items.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [items[i], items[j]] = [items[j], items[i]]; }
+  questions = items.slice(0, 15);
+  book = { title: "Review session", mode: "review" };
+  go("home"); startQuiz();
+}
+
+function showView(v) { ["search", "generating", "quiz", "score"].forEach((x) => $("view-" + x).classList.toggle("hidden", x !== v)); }
+
+function startQuiz() { qIndex = 0; picked = null; score = 0; missedThisQuiz = []; showView("quiz"); renderQuestion(); }
+
+function renderQuestion() {
+  const q = questions[qIndex];
+  $("quizEyebrow").innerHTML = book.mode === "review"
+    ? "Review · spaced repetition"
+    : escapeHtml(book.title) + (book.author ? " — " + escapeHtml(book.author) : "") + " · Grade " + getGrade(book);
+  const prog = $("progress"); prog.innerHTML = "";
+  questions.forEach((_, i) => { const s = document.createElement("span"); if (i < qIndex) s.className = "done"; else if (i === qIndex) s.className = "now"; prog.appendChild(s); });
+  $("qText").textContent = q.question;
+  $("explain").classList.add("hidden"); $("nextBtn").classList.add("hidden");
+  $("count").textContent = "Question " + (qIndex + 1) + " of " + questions.length + " · Score " + score;
+  const opts = $("opts"); opts.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button"); btn.className = "opt";
+    btn.innerHTML = '<span class="key">' + String.fromCharCode(65 + i) + '</span><span class="txt">' + escapeHtml(opt) + "</span>";
+    btn.addEventListener("click", () => choose(i)); opts.appendChild(btn);
+  });
+}
+
+function choose(i) {
+  if (picked !== null) return;
+  picked = i; const q = questions[qIndex]; const ok = i === q.correctIndex;
+  if (ok) score++; else missedThisQuiz.push(q);
+  if (book.mode === "review" && q._srcId) gradeSrs({ key: q._srcId.includes("|") ? null : q._srcId, title: q._srcId }, q.question, ok);
+  const buttons = $("opts").children;
+  for (let k = 0; k < buttons.length; k++) { buttons[k].disabled = true;
+    if (k === q.correctIndex) buttons[k].classList.add("is-right"); else if (k === i) buttons[k].classList.add("is-wrong"); else buttons[k].classList.add("dim"); }
+  $("explain").innerHTML = '<span class="verdict ' + (ok ? "ok" : "no") + '">' + (ok ? "Correct." : "Not quite.") + "</span>" + escapeHtml(q.explanation || "");
+  $("explain").classList.remove("hidden");
+  $("count").textContent = "Question " + (qIndex + 1) + " of " + questions.length + " · Score " + score;
+  $("nextBtn").textContent = qIndex + 1 >= questions.length ? "See result" : "Next question";
+  $("nextBtn").classList.remove("hidden");
+}
+
+function next() { if (qIndex + 1 >= questions.length) finishQuiz(); else { qIndex++; picked = null; renderQuestion(); } }
+
+function finishQuiz() {
+  const pct = Math.round((score / questions.length) * 100);
+  // persist results
+  if (book.mode !== "review") { recordAttempt(book, score, questions.length); scheduleMisses(book, missedThisQuiz); }
+  const f = getFlags(); f.totalQuizzes++; if (pct === 100) f.hadPerfect = true;
+  if (book.mode === "notes") f.usedNotes = true; if (book.mode === "review") f.didReview = true; setFlags(f);
+  bumpStreak();
+  syncStreakNotification();
+
+  // per-book grade update (not for review sessions)
+  const gradeBlock = $("gradeBlock");
+  if (book.mode !== "review") {
+    const g = updateGrade(book, pct);
+    gradeBlock.classList.remove("hidden");
+    const big = $("gradeBadgeBig");
+    big.className = "gradebadge lg g-" + g.to; big.textContent = g.to;
+    $("gradeLabel").textContent = "Grade " + g.to + " on this " + (book.mode === "notes" ? "material" : "book");
+    const gc = $("gradeChange");
+    if (g.dir === "up") { gc.className = "gradechange up"; gc.textContent = g.from === g.to ? "Holding at the top — " + GRADE_DESC[g.to] : "▲ Promoted from " + g.from + " — quizzes just got harder"; }
+    else if (g.dir === "down") { gc.className = "gradechange down"; gc.textContent = "▼ Dropped from " + g.from + " — easier questions next time"; }
+    else { gc.className = "gradechange hold"; gc.textContent = "Held at " + g.to + " · " + GRADE_DESC[g.to]; }
+    if (g.dir === "up") haptic();
+  } else {
+    gradeBlock.classList.add("hidden");
+  }
+
+  $("scoreEyebrow").textContent = (book.mode === "review" ? "Review" : book.title) + " — result";
+  $("scoreNum").textContent = score; $("scoreDen").textContent = " / " + questions.length;
+  $("verdict").textContent = pct === 100 ? "Photographic. Did you write this book?" : pct >= 75 ? "Solid retention — the spine of it stuck with you." : pct >= 50 ? "The plot survived. Some details escaped." : "Might be time for a re-read.";
+
+  const before = levelFromXp(getXp());
+  const earned = score * XP_PER_CORRECT + (pct === 100 ? PERFECT_BONUS : 0);
+  setXp(getXp() + earned);
+  const after = levelFromXp(getXp()); renderBadge();
+  const leveled = after.level > before.level;
+  $("levelUp").classList.toggle("hidden", !leveled);
+  if (leveled) { $("levelUp").textContent = "⬆ LEVEL UP — Level " + after.level + " · " + rankFor(after.level); haptic(); }
+  $("xpRank").textContent = "Level " + after.level + " · " + rankFor(after.level);
+  $("xpNumbers").textContent = after.into + " / " + after.need + " XP";
+  $("xpPlus").textContent = "+" + earned + " XP";
+  $("xpDetail").textContent = score + " correct × " + XP_PER_CORRECT + (pct === 100 ? " + " + PERFECT_BONUS + " perfect bonus" : "");
+  const fill = $("xpFill"); const startPct = leveled ? 0 : Math.round((before.into / before.need) * 100);
+  fill.style.transition = "none"; fill.style.width = startPct + "%";
+  requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.transition = ""; fill.style.width = Math.round((after.into / after.need) * 100) + "%"; }));
+
+  $("reviewMissBtn").classList.toggle("hidden", missedThisQuiz.length === 0 || book.mode === "review");
+  $("retryBtn").classList.toggle("hidden", book.mode === "review");
+  prepareShare(after.level, pct);
+  showView("score");
+
+  // cloud sync (fire-and-forget; no-op when signed out)
+  if (book.mode !== "review") cloudPushAttempt(book, score, questions.length, getGrade(book));
+  cloudPushProfile();
+}
+
+// review just the missed questions from the quiz just taken
+function reviewMisses() { if (!missedThisQuiz.length) return; questions = missedThisQuiz.slice(); book = { ...book, mode: "review", title: book.title }; startQuiz(); }
+
+// ---------- sharing ----------
+function shareText(level) {
+  const what = book.mode === "review" ? "a review session" : book.mode === "notes" ? "my notes on “" + book.title + "”" : "“" + book.title + "”" + (book.author ? " by " + book.author : "");
+  const gradeBit = book.mode === "review" ? "" : " (Grade " + getGrade(book) + ")";
+  return "I scored " + score + "/" + questions.length + " on the retention quiz for " + what + gradeBit + " — Level " + level + " " + rankFor(level) + " on Retain. How much of your last read do you actually remember?";
+}
+function shareUrl() { return book.key ? "https://openlibrary.org" + book.key : "https://openlibrary.org"; }
+function prepareShare(level) {
+  const text = shareText(level);
+  $("shareX").href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
+  $("shareWhatsApp").href = "https://wa.me/?text=" + encodeURIComponent(text + " " + shareUrl());
+  $("shareFacebook").href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(shareUrl()) + "&quote=" + encodeURIComponent(text);
+  $("copyLabel").textContent = "Copy text";
+  if (navigator.share) { $("shareNative").classList.remove("hidden"); $("shareNative").onclick = () => navigator.share({ text, url: shareUrl() }).catch(() => {}); }
+  $("shareCopy").onclick = async () => { try { await navigator.clipboard.writeText(text + " " + shareUrl()); $("copyLabel").textContent = "Copied!"; } catch { $("copyLabel").textContent = "Copy failed"; } setTimeout(() => { $("copyLabel").textContent = "Copy text"; }, 1800); };
+}
+
+// ============================ RENDER: LIBRARY ============================
+function refreshDueBanner() {
+  const due = dueItems(); const total = due.reduce((a, d) => a + d.count, 0);
+  document.querySelector('.tabbar .tab[data-tab="library"]').classList.toggle("has-due", total > 0);
+  const banner = $("dueBanner");
+  if (total > 0) { banner.classList.remove("hidden"); banner.innerHTML = '<button class="btn full" id="reviewNowBtn">🔁 ' + total + ' question' + (total > 1 ? "s" : "") + ' due for review</button>'; $("reviewNowBtn").onclick = startReview; }
+  else banner.classList.add("hidden");
+}
+function renderLibrary() {
+  const s = statsSnapshot();
+  $("stBooks").textContent = s.bookCount; $("stStreak").textContent = s.streak; $("stAvg").textContent = s.avg == null ? "—" : s.avg + "%";
+  const due = dueItems(); const dueTotal = due.reduce((a, d) => a + d.count, 0);
+  const ds = $("dueSection");
+  if (dueTotal) { ds.innerHTML = '<button class="btn full" style="margin-bottom:22px;">🔁 Review ' + dueTotal + ' due question' + (dueTotal > 1 ? "s" : "") + '</button>'; ds.querySelector("button").onclick = startReview; }
+  else ds.innerHTML = "";
+  const lib = getLibrary(); const ids = Object.keys(lib).sort((a, b) => (lib[b].last || 0) - (lib[a].last || 0));
+  const list = $("libList");
+  if (!ids.length) { list.innerHTML = '<p class="muted">No books yet. Take a quiz from the Home tab and it’ll show up here with your score history.</p>'; }
+  else {
+    list.innerHTML = "";
+    for (const id of ids) {
+      const r = lib[id]; const last = r.attempts[r.attempts.length - 1];
+      const dueN = LS.get("retain:srs:" + id, []).filter((it) => it.due <= Date.now()).length;
+      const row = document.createElement("div"); row.className = "libbook";
+      const cov = r.cover ? '<img class="cover" alt="" src="https://covers.openlibrary.org/b/id/' + r.cover + '-M.jpg" />' : '<div class="cover blank">' + escapeHtml((r.title || "¶").charAt(0)) + "</div>";
+      const dueTag = dueN ? `<span class="due">${dueN} due</span>` : "";
+      const authorBit = r.author ? escapeHtml(r.author) + " · " : "";
+      const quizWord = r.attempts.length > 1 ? "quizzes" : "quiz";
+      const lastPct = Math.round(last.score / last.total * 100);
+      const gr = getGrade({ key: r.key, title: r.title, author: r.author });
+      row.innerHTML =
+        `<div class="litop">${cov}` +
+        `<div class="body"><div class="tt">${escapeHtml(r.title)}${dueTag}</div>` +
+        `<div class="mm">${authorBit}${r.attempts.length} ${quizWord}</div></div>` +
+        `<div class="lastscore"><div class="lastlbl">Last</div><div class="lastpct">${lastPct}%</div></div></div>` +
+        ladderHtml(gr);
+      const reBtn = document.createElement("button"); reBtn.className = "quizbar"; reBtn.textContent = "Take the next quiz →";
+      reBtn.onclick = () => generateQuiz({ title: r.title, author: r.author, year: r.year, cover: r.cover, key: r.key, mode: "book" });
+      row.appendChild(reBtn);
+      list.appendChild(row);
+    }
+  }
+  const ac = $("achList"); ac.innerHTML = "";
+  for (const a of unlockedAchievements()) { const d = document.createElement("div"); d.className = "ach" + (a.on ? "" : " locked"); d.innerHTML = '<div class="ic">' + a.ic + '</div><div class="nm">' + a.nm + '</div><div class="ds">' + a.ds + "</div>"; ac.appendChild(d); }
+  refreshDueBanner();
+}
+
+// ============================ RENDER: NOTES ============================
+function renderSavedNotes() {
+  const box = $("savedNotes"); const notes = getSavedNotes();
+  if (!notes.length) { box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="eyebrow">Saved notes</div>';
+  for (const n of notes) {
+    const row = document.createElement("div"); row.className = "libitem";
+    row.innerHTML = '<div class="body"><div class="tt">' + escapeHtml(n.title) + '</div><div class="mm">' + n.text.length + " characters · " + new Date(n.created).toLocaleDateString() + "</div></div>";
+    const quizB = document.createElement("button"); quizB.className = "btn ghost"; quizB.style.cssText = "padding:8px 13px;font-size:13px;"; quizB.textContent = "Quiz";
+    quizB.onclick = () => generateQuiz({ title: n.title, mode: "notes", notes: n.text });
+    const delB = document.createElement("button"); delB.className = "chip"; delB.style.cssText = "padding:8px 12px;margin-left:6px;border-color:var(--wrong);color:var(--wrong);"; delB.textContent = "✕";
+    delB.onclick = () => { deleteNote(n.id); renderSavedNotes(); };
+    row.appendChild(quizB); row.appendChild(delB); box.appendChild(row);
+  }
+}
+
+// ============================ RENDER: SETTINGS ============================
+function renderSettings() {
+  const s = getSettings();
+  $("setLength").querySelectorAll(".chip").forEach((c) => c.classList.toggle("on", +c.dataset.v === s.length));
+  $("themeToggle").textContent = s.theme === "dark" ? "On" : "Off";
+  $("themeToggle").classList.toggle("on", s.theme === "dark");
+  renderAccount();
+  renderSubRow();
+}
+
+// ============================ WIRING ============================
+$("searchBtn").addEventListener("click", searchBooks);
+$("query").addEventListener("keydown", (e) => { if (e.key === "Enter") searchBooks(); });
+$("nextBtn").addEventListener("click", next);
+$("quitBtn").addEventListener("click", () => { showView("search"); });
+$("anotherBtn").addEventListener("click", () => { showView("search"); $("results").innerHTML = ""; $("query").value = ""; $("coverageFacts").classList.remove("hidden"); });
+$("retryBtn").addEventListener("click", () => { if (book.mode === "notes") generateQuiz(book); else generateQuiz(book); });
+$("reviewMissBtn").addEventListener("click", reviewMisses);
+
+$("notesQuizBtn").addEventListener("click", () => {
+  const text = $("notesText").value.trim(); $("notesError").classList.add("hidden");
+  if (text.length < 40) { showErr("notesError", "Please paste a bit more — at least a few sentences to build questions from."); return; }
+  generateQuiz({ title: $("notesTitle").value.trim() || "My notes", mode: "notes", notes: text });
+});
+$("notesSaveBtn").addEventListener("click", () => {
+  const text = $("notesText").value.trim(); if (text.length < 40) { showErr("notesError", "Add a bit more text before saving."); return; }
+  saveNote($("notesTitle").value.trim(), text); $("notesText").value = ""; $("notesTitle").value = ""; renderSavedNotes();
+});
+
+$("setLength").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; const s = getSettings(); s.length = +c.dataset.v; setSettings(s); renderSettings(); });
+$("themeToggle").addEventListener("click", () => { const s = getSettings(); s.theme = s.theme === "dark" ? "light" : "dark"; setSettings(s); renderSettings(); });
+$("resetBtn").addEventListener("click", () => {
+  if (!confirm("Reset all progress? This clears your XP, library, streak, and saved notes on this device.")) return;
+  Object.keys(localStorage).filter((k) => k.startsWith("retain:")).forEach((k) => localStorage.removeItem(k));
+  renderBadge(); renderSettings(); renderLibrary(); renderSavedNotes(); refreshDueBanner();
+});
+
+// ============================ SUPABASE CLOUD SYNC ============================
+let sb = null, sbUser = null;
+const cloudOn = () => !!(SUPABASE_URL && SUPABASE_KEY);
+
+async function initCloud() {
+  if (!cloudOn()) { updateGate(); renderAccount(); return; }
+  setGate(true); // block the app until we know the auth state
+  try {
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { data } = await sb.auth.getSession();
+    sbUser = data && data.session ? data.session.user : null;
+    sb.auth.onAuthStateChange(async (event, session) => {
+      sbUser = session ? session.user : null;
+      if (event === "SIGNED_IN") { await cloudSync(); flushSessions(); renderLibrary(); }
+      renderAccount(); renderBadge(); updateGate();
+    });
+    if (sbUser) await cloudSync();
+  } catch (e) { console.warn("Cloud init failed", e); }
+  flushSessions();
+  renderAccount(); updateGate();
+}
+
+// ---- auth gate (accounts required to use the app) ----
+function setGate(show) {
+  const g = $("authGate"); if (!g) return;
+  g.style.display = show ? "flex" : "none";
+  document.body.style.overflow = show ? "hidden" : "";
+}
+function updateGate() { if (!cloudOn()) { setGate(false); return; } setGate(!sbUser); }
+function gateMsg(cls, t) { const m = $("gateMsg"); if (!m) return; m.className = "acctmsg " + cls; m.textContent = t; }
+async function oauth(provider) {
+  if (!sb) { gateMsg("err", "Still connecting — try again in a moment."); return; }
+  try { await sb.auth.signInWithOAuth({ provider, options: { redirectTo: location.origin } }); }
+  catch (e) { gateMsg("err", "Couldn't start " + provider + " sign-in."); }
+}
+
+// Merge helpers — never lose progress: keep the better of local vs cloud.
+function mergeXp(localXp, cloudXp) { return Math.max(localXp || 0, cloudXp || 0); }
+function mergeGrades(localG, cloudG) {
+  const out = Object.assign({}, cloudG || {});
+  for (const k in (localG || {})) {
+    const li = GRADES.indexOf(localG[k]), ci = GRADES.indexOf(out[k] || "F");
+    if (li > ci) out[k] = localG[k];
+  }
+  return out;
+}
+// Rebuild the local library from cloud attempt rows, preserving any local covers.
+function libraryFromAttempts(rows) {
+  const lib = getLibrary();
+  for (const a of rows) {
+    const id = a.book_key || (a.book_title + "|" + (a.author || ""));
+    const rec = lib[id] || { id, title: a.book_title, author: a.author, key: a.book_key, cover: null, attempts: [], mode: a.mode };
+    const stamp = a.finished_at ? new Date(a.finished_at).getTime() : Date.now();
+    if (!rec.attempts.some((x) => Math.abs(x.date - stamp) < 1000 && x.score === a.score)) {
+      rec.attempts.push({ date: stamp, score: a.score, total: a.total });
+    }
+    rec.last = Math.max(rec.last || 0, stamp);
+    rec.attempts.sort((x, y) => x.date - y.date);
+    lib[id] = rec;
+  }
+  LS.set("retain:library", lib);
+}
+
+async function cloudSync() {
+  if (!sb || !sbUser) return;
+  try {
+    const { data: prof } = await sb.from("profiles").select("xp,grades").eq("id", sbUser.id).maybeSingle();
+    const { data: rows } = await sb.from("quiz_attempts").select("*").eq("user_id", sbUser.id);
+    // merge cloud into local
+    setXp(mergeXp(getXp(), prof ? prof.xp : 0));
+    LS.set("retain:grades", mergeGrades(getGrades(), prof ? prof.grades : {}));
+    if (rows && rows.length) libraryFromAttempts(rows);
+    // push the merged result back up so the cloud reflects the latest
+    await cloudPushProfile();
+    renderBadge();
+  } catch (e) { console.warn("Sync failed", e); }
+}
+
+async function cloudPushProfile() {
+  if (!sb || !sbUser) return;
+  try {
+    await sb.from("profiles").upsert({ id: sbUser.id, xp: getXp(), grades: getGrades(), updated_at: new Date().toISOString() });
+  } catch (e) { console.warn("Profile push failed", e); }
+}
+
+async function cloudPushAttempt(b, score, total, gradeAfter) {
+  if (!sb || !sbUser) return;
+  try {
+    await sb.from("quiz_attempts").insert({
+      user_id: sbUser.id, book_key: b.key || null, book_title: b.title || "Untitled",
+      author: b.author || null, mode: b.mode || "book", score, total,
+      grade_after: gradeAfter || null, finished_at: new Date().toISOString(),
+    });
+  } catch (e) { console.warn("Attempt push failed", e); }
+}
+
+// ---- time-spent / session tracking ----
+// Measures foreground stretches and writes them to the `sessions` table.
+// Buffered locally so nothing is lost when offline or signed out.
+let sessionStart = Date.now();
+const pendingSessions = () => LS.get("retain:pendingSessions", []);
+function bufferSession(startMs, endMs) {
+  if (endMs - startMs < 3000) return; // ignore sub-3-second blips
+  const p = pendingSessions();
+  p.push({ started_at: new Date(startMs).toISOString(), ended_at: new Date(endMs).toISOString() });
+  LS.set("retain:pendingSessions", p.slice(-300));
+}
+async function flushSessions() {
+  if (!sb || !sbUser) return;
+  const p = pendingSessions();
+  if (!p.length) return;
+  try {
+    const rows = p.map((s) => ({ user_id: sbUser.id, started_at: s.started_at, ended_at: s.ended_at }));
+    const { error } = await sb.from("sessions").insert(rows);
+    if (!error) LS.set("retain:pendingSessions", []);
+  } catch (e) { console.warn("Session flush failed", e); }
+}
+function endSession() { const now = Date.now(); bufferSession(sessionStart, now); sessionStart = now; flushSessions(); }
+function startSession() { sessionStart = Date.now(); }
+
+// ---- auth actions ----
+async function acctSignUp(email, pass) { return sb.auth.signUp({ email, password: pass }); }
+async function acctSignIn(email, pass) { return sb.auth.signInWithPassword({ email, password: pass }); }
+async function acctSignOut() { await sb.auth.signOut(); sbUser = null; renderAccount(); }
+async function acctDeleteData() {
+  if (!sb || !sbUser) return;
+  await sb.from("quiz_attempts").delete().eq("user_id", sbUser.id);
+  await sb.from("sessions").delete().eq("user_id", sbUser.id);
+  await sb.from("profiles").delete().eq("id", sbUser.id);
+}
+
+// ---- account UI ----
+function renderAccount() {
+  const box = $("accountBox"); if (!box) return;
+  if (!cloudOn()) {
+    box.innerHTML = '<p class="muted">Cloud sync isn\u2019t set up in this build. Your progress is saved on this device only.</p>';
+    return;
+  }
+  if (sbUser) {
+    box.innerHTML =
+      '<div class="acctmail">' + escapeHtml(sbUser.email || "Signed in") + '</div>' +
+      '<div class="acctstatus">Progress syncs to the cloud across your devices.</div>' +
+      '<div class="acctrow" style="margin-top:12px;">' +
+        '<button class="chip" id="acctSyncBtn">Sync now</button>' +
+        '<button class="chip" id="acctOutBtn">Sign out</button>' +
+        '<button class="chip" id="acctDelBtn" style="border-color:var(--wrong);color:var(--wrong);">Delete cloud data</button>' +
+      '</div><div class="acctmsg" id="acctMsg"></div>';
+    $("acctSyncBtn").onclick = async () => { $("acctMsg").className = "acctmsg"; $("acctMsg").textContent = "Syncing\u2026"; await cloudSync(); renderLibrary(); $("acctMsg").className = "acctmsg ok"; $("acctMsg").textContent = "Synced."; };
+    $("acctOutBtn").onclick = acctSignOut;
+    $("acctDelBtn").onclick = async () => {
+      if (!confirm("Delete all your cloud data? This removes your quiz history, grades, and XP from the server. Your on-device data stays.")) return;
+      try { await acctDeleteData(); $("acctMsg").className = "acctmsg ok"; $("acctMsg").textContent = "Cloud data deleted."; }
+      catch { $("acctMsg").className = "acctmsg err"; $("acctMsg").textContent = "Couldn\u2019t delete \u2014 try again."; }
+    };
+  } else {
+    box.innerHTML =
+      '<p class="muted" style="margin-bottom:11px;">Sign in to save your progress and sync it across devices. Optional \u2014 the app works without an account.</p>' +
+      '<input class="acctfield" id="acctEmail" type="email" placeholder="Email" autocomplete="email" />' +
+      '<input class="acctfield" id="acctPass" type="password" placeholder="Password" autocomplete="current-password" />' +
+      '<div class="acctrow"><button class="btn" id="acctInBtn">Sign in</button><button class="btn ghost" id="acctUpBtn">Create account</button></div>' +
+      '<div class="acctmsg" id="acctMsg"></div>';
+    const msg = (cls, t) => { const m = $("acctMsg"); m.className = "acctmsg " + cls; m.textContent = t; };
+    $("acctInBtn").onclick = async () => {
+      const e = $("acctEmail").value.trim(), p = $("acctPass").value;
+      if (!e || !p) return msg("err", "Enter your email and password.");
+      msg("", "Signing in\u2026");
+      const { error } = await acctSignIn(e, p);
+      if (error) return msg("err", error.message);
+      await cloudSync(); renderLibrary(); renderAccount();
+    };
+    $("acctUpBtn").onclick = async () => {
+      const e = $("acctEmail").value.trim(), p = $("acctPass").value;
+      if (!e || p.length < 6) return msg("err", "Use a valid email and a password of at least 6 characters.");
+      msg("", "Creating account\u2026");
+      const { error } = await acctSignUp(e, p);
+      if (error) return msg("err", error.message);
+      msg("ok", "Account created. If asked, confirm via the email we sent, then sign in.");
+    };
+  }
+}
+
+// ---- auth gate button wiring ----
+if ($("gateInBtn")) {
+  $("gateInBtn").onclick = async () => {
+    const e = $("gateEmail").value.trim(), p = $("gatePass").value;
+    if (!e || !p) return gateMsg("err", "Enter your email and password.");
+    if (!sb) return gateMsg("err", "Still connecting — try again in a moment.");
+    gateMsg("", "Signing in…");
+    const { error } = await acctSignIn(e, p);
+    if (error) return gateMsg("err", error.message);
+    // onAuthStateChange hides the gate and syncs
+  };
+  $("gateUpBtn").onclick = async () => {
+    const e = $("gateEmail").value.trim(), p = $("gatePass").value;
+    if (!e || p.length < 6) return gateMsg("err", "Use a valid email and a password of at least 6 characters.");
+    if (!sb) return gateMsg("err", "Still connecting — try again in a moment.");
+    gateMsg("", "Creating your account…");
+    const { error } = await acctSignUp(e, p);
+    if (error) return gateMsg("err", error.message);
+    gateMsg("ok", "Account created. If sign-in doesn't happen automatically, tap Sign in.");
+  };
+  $("gateGoogleBtn").onclick = () => oauth("google");
+  $("gateAppleBtn").onclick = () => oauth("apple");
+}
+
+// ============================ INIT ============================
+if (cloudOn()) setGate(true);   // gate up immediately so no quiz starts un-authed
+
+// notifications UI wiring
+$("notifOpenBtn").onclick = () => { haptic(); openNotifications(); };
+$("notifBack").onclick = () => { haptic(); go("settings"); };
+$("helpOpenBtn").onclick = () => { haptic(); openHelp(); };
+$("helpBack").onclick = () => { haptic(); go("settings"); };
+$("subOpenBtn").onclick = () => { haptic(); openSubscription(); };
+$("subBack").onclick = () => { haptic(); go("settings"); };
+$("subRestore").onclick = () => { haptic(); rcRestore(); };
+initRevenueCat();
+$("notifMaster").onclick = async () => {
+  haptic();
+  const n = getNotif();
+  if (n.enabled) { await notifDisable(); renderNotifications(); return; }
+  $("notifMsg").textContent = "Requesting permission…";
+  const r = await notifEnable();
+  if (!r.ok) { renderNotifications(); $("notifMsg").textContent = "Notifications are blocked. Enable them for Cortex in your device Settings."; return; }
+  renderNotifications();
+};
+$("notifDaily").onclick = async () => { haptic(); const n = getNotif(); n.dailyOn = !n.dailyOn; setNotif(n); await scheduleDaily(); renderNotifications(); };
+$("notifStreak").onclick = async () => { haptic(); const n = getNotif(); n.streakOn = !n.streakOn; setNotif(n); await syncStreakNotification(); renderNotifications(); };
+$("notifTime").onchange = async () => { const n = getNotif(); n.time = $("notifTime").value || "19:00"; setNotif(n); await scheduleDaily(); renderNotifications(); };
+if (getNotif().enabled) rescheduleAll();   // keep schedules current on every launch
+
+// session time tracking: close a session when the app backgrounds, start fresh on return
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") endSession(); else startSession();
+});
+window.addEventListener("pagehide", endSession);
+setInterval(flushSessions, 60000); // retry buffered sessions periodically
+applyTheme(); renderBadge(); refreshDueBanner(); renderAccount(); renderSubRow(); initCloud(); $("query").focus();
+</script>
+</body>
+</html>

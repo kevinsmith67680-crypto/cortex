@@ -1,0 +1,19 @@
+# Render blueprint — deploys the quiz server with one click from a connected repo.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: retain-quiz
+    runtime: node
+    plan: free
+    buildCommand: "echo 'no build step needed'"
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false   # you paste this in the Render dashboard; never commit it
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-5
+      - key: RATE_HOURLY
+        value: "10"
+      - key: RATE_DAILY
+        value: "40"

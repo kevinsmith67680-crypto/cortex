@@ -1,0 +1,213 @@
+<!doctype html>
+<!--
+  PRIVACY POLICY for the Cortex app.
+  Grounded in how the app actually handles data (on-device storage, quiz generation
+  via your server + Anthropic, Open Library search, and optional Supabase accounts).
+  It is not legal advice — have it reviewed before you submit to the App Store.
+
+  Host this file at a public URL (e.g. https://your-domain/privacy.html) and paste
+  that URL into App Store Connect. The same file is also linked from Settings.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Privacy Policy — Cortex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --ink: #1d2230; --ink-soft: #5a6072; --paper: #fbfaf6; --paper-deep: #f1efe6;
+  --line: #d9d5c7; --mark: #e85b7a; --card: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #ece9e0; --ink-soft: #9b9caa; --paper: #15171e; --paper-deep: #1e212b;
+    --line: #333745; --mark: #f06d8a; --card: #1c1f28;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+html { background: var(--paper); }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: 'Public Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 720px; margin: 0 auto;
+  padding: calc(28px + env(safe-area-inset-top)) calc(22px + env(safe-area-inset-right))
+           calc(60px + env(safe-area-inset-bottom)) calc(22px + env(safe-area-inset-left));
+}
+.back {
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+  color: var(--ink-soft); font-weight: 600; font-size: 14px; margin-bottom: 26px;
+  border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; background: var(--card);
+}
+.back svg { width: 16px; height: 16px; }
+h1 { font-family: 'Fraunces', serif; font-weight: 800; font-size: clamp(28px, 6vw, 40px);
+  line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 6px; }
+.updated { color: var(--ink-soft); font-size: 14px; margin: 0 0 30px; }
+h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; margin: 34px 0 10px; }
+p, li { color: var(--ink); font-size: 16px; }
+p { margin: 0 0 14px; }
+ul { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 8px; }
+strong { font-weight: 700; }
+a { color: var(--mark); }
+.note { color: var(--ink-soft); font-size: 14px; border-left: 3px solid var(--line);
+  padding: 4px 0 4px 14px; margin: 0 0 16px; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+.foot { color: var(--ink-soft); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="index.html#settings" onclick="if(history.length>1){history.back();return false;}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back
+  </a>
+
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: 17 June 2026</p>
+
+  <p>This policy explains what information the <strong>Cortex</strong> app ("the app", "we", "us")
+  collects, how it is used, and the choices you have. The app is provided by
+  <strong>Cortex</strong>. If you have questions, contact us at
+  <a href="mailto:Eddie.kung1@icloud.com">Eddie.kung1@icloud.com</a>.</p>
+
+  <p>Our approach is to keep as much as possible on your own device, and to send off your device
+  only what is needed to generate a quiz or — if you choose to create an account — to sync your
+  progress across devices.</p>
+
+  <h2>Information stored only on your device</h2>
+  <p>By default, the following are stored locally on your device (in the app's local storage) and are
+  not sent to us:</p>
+  <ul>
+    <li>Your XP, ranks, and per-book grades</li>
+    <li>Your library of quizzed books and your score history</li>
+    <li>Your daily streak and any achievements</li>
+    <li>Notes you save in the app</li>
+    <li>Your settings (theme, quiz length) and the record of which questions you have already been asked</li>
+  </ul>
+  <p>If you never create an account, this information stays on your device. Deleting the app, or using
+  "Reset progress" in Settings, removes it.</p>
+
+  <h2>Information sent to generate a quiz</h2>
+  <p>When you generate a quiz, the app sends to our server, and our server sends on to our quiz-generation
+  provider <strong>Anthropic</strong> (the Claude API), the following:</p>
+  <ul>
+    <li>In book mode: the book's title and, where available, author and year.</li>
+    <li>In notes mode: the text of the notes you paste.</li>
+    <li>A short list of recently-asked questions, so new quizzes don't repeat them.</li>
+  </ul>
+  <p>In book mode, the title may also be used to perform web searches to ground the questions in accurate
+  detail. Anthropic processes this content to generate questions and returns them to you.
+  See Anthropic's privacy and data-usage terms at
+  <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">anthropic.com/legal/privacy</a>.
+  We do not use your notes or titles for advertising, and we do not sell them.</p>
+
+  <h2>Book search</h2>
+  <p>When you search for a book, your search text is sent to the <strong>Open Library</strong> service
+  (operated by the Internet Archive) to return matching titles. See
+  <a href="https://archive.org/about/terms.php" target="_blank" rel="noopener">their terms</a>.</p>
+
+  <h2>Accounts and cloud sync (optional)</h2>
+  <p>If you choose to create an account to sync your progress across devices, we use
+  <strong>Supabase</strong> for authentication and storage, and you can sign in with
+  <strong>Sign in with Apple</strong> or <strong>Google</strong>. In that case we receive and store:</p>
+  <ul>
+    <li>An account identifier and the email address associated with your sign-in</li>
+    <li>Your quiz history (book titles, authors, scores), grades, and XP</li>
+    <li>Time spent in the app, used to show your own activity back to you</li>
+  </ul>
+  <p>This data is linked to your account so it can sync across your devices. It is used only to operate
+  the app's features — not for advertising or tracking across other apps or websites.</p>
+  <p class="note">If you use the app without signing in, none of the above account data is collected,
+  and your progress stays on your device.</p>
+
+  <h2>Technical information</h2>
+  <p>When your device contacts our server, the server briefly processes your <strong>IP address</strong>
+  to enforce rate limits and prevent abuse. It is not used to identify you and is not retained beyond
+  what is needed for that purpose. Our hosting provider is <strong>Render</strong>. Fonts are delivered
+  by Google Fonts when the app loads.</p>
+
+  <h2>What we do not do</h2>
+  <ul>
+    <li>We do not show advertising.</li>
+    <li>We do not use third-party analytics or tracking SDKs.</li>
+    <li>We do not sell or rent your personal information.</li>
+    <li>We do not track you across other companies' apps or websites.</li>
+  </ul>
+
+  <h2>Your consent, including AI processing</h2>
+  <p>When you generate a quiz, you are asking us to send the book title or the notes you provide to our
+  AI quiz-generation provider, Anthropic, so it can create your questions. By starting a quiz you consent
+  to that processing. You can decline at any time by not generating a quiz, and you control what you type
+  or paste. If you create an account, you also consent to the storage and syncing described above. You may
+  withdraw consent by signing out, deleting your data, or no longer using the relevant feature.</p>
+
+  <h2>Sharing your data and third parties</h2>
+  <p>We share data only with the service providers needed to run the app: Anthropic (AI quiz generation),
+  Open Library / the Internet Archive (book search), Supabase (accounts and storage, if you sign in),
+  Apple and Google (sign-in, if you use it), Render (hosting), and Google Fonts (font delivery). We do not
+  sell your data or share it with advertisers or data brokers. Where we share your data with a third
+  party, we require that they protect it to a standard at least equal to that described in this policy and
+  use it only to provide their service to us.</p>
+
+  <h2>How we keep your data safe</h2>
+  <p>All data sent between the app, our server, and our providers travels over encrypted HTTPS connections.
+  Your Anthropic API key and any server secrets are stored as server environment variables, never in the
+  app. Access to any account data we store is restricted. No method of transmission or storage is ever
+  completely secure, but we take reasonable measures to protect your information.</p>
+
+  <h2>How long we keep your data</h2>
+  <ul>
+    <li><strong>On-device data</strong> (XP, library, streak, saved notes, settings) stays on your device
+      until you reset progress or delete the app.</li>
+    <li><strong>Account data</strong> (email, account identifier, quiz history, grades, XP, session time)
+      is kept while your account exists and is deleted when you delete your data or account, except where
+      we must retain limited information for security, fraud prevention, or legal reasons.</li>
+    <li><strong>Book titles and notes</strong> sent to generate a quiz are processed to create your
+      questions and are not stored by us afterwards; their handling by Anthropic is governed by Anthropic's
+      terms.</li>
+    <li><strong>IP addresses</strong> are processed transiently for rate limiting and are not stored
+      long-term.</li>
+  </ul>
+
+  <h2>Your choices and how to delete your data</h2>
+  <ul>
+    <li><strong>On-device data:</strong> use "Reset progress" in Settings, or delete the app.</li>
+    <li><strong>Cloud data:</strong> if you have an account, use the data-deletion control in Settings to
+      remove your synced quiz history, grades, and XP from our servers.</li>
+    <li><strong>Account and data deletion:</strong> to delete your account and all associated data, email
+      us at <a href="mailto:Eddie.kung1@icloud.com?subject=Delete%20my%20Cortex%20account">Eddie.kung1@icloud.com</a>
+      with the subject "Delete my Cortex account". We will delete your account and associated data, other
+      than anything we must keep for security, fraud prevention, or legal reasons. This page is also the
+      place to request deletion if you installed Cortex from an app store.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>The app is not directed to children under 13 (or the equivalent minimum age in your country), and we
+  do not knowingly collect personal information from them. If you believe a child has provided us
+  information, contact us and we will delete it.</p>
+
+  <h2>Data location and your rights</h2>
+  <p>Depending on where you live, you may have rights to access, correct, delete, or receive a copy of your personal
+  information (data portability), or to object to certain processing. To exercise them, contact
+  <a href="mailto:Eddie.kung1@icloud.com">Eddie.kung1@icloud.com</a>. Our services and providers may
+  process and store data in the United States and other countries, and your data may be transferred
+  there.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this policy from time to time. We will revise the "Last updated" date above, and
+  significant changes will be reflected in the app.</p>
+
+  <hr />
+  <p class="foot">Cortex is provided by Cortex. Contact:
+  <a href="mailto:Eddie.kung1@icloud.com">Eddie.kung1@icloud.com</a>.</p>
+
+</div>
+</body>
+</html>

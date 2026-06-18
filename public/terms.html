@@ -1,0 +1,160 @@
+<!doctype html>
+<!--
+  TERMS OF SERVICE for the Cortex app.
+  Plain-language terms covering app use, AI-generated quiz content, accounts,
+  acceptable use, and liability. Not legal advice — have it reviewed before relying
+  on it. Host alongside privacy.html in public/ ; it is also linked from Settings.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Terms of Service — Cortex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --ink: #1d2230; --ink-soft: #5a6072; --paper: #fbfaf6; --paper-deep: #f1efe6;
+  --line: #d9d5c7; --mark: #e85b7a; --card: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #ece9e0; --ink-soft: #9b9caa; --paper: #15171e; --paper-deep: #1e212b;
+    --line: #333745; --mark: #f06d8a; --card: #1c1f28;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+html { background: var(--paper); }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: 'Public Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 720px; margin: 0 auto;
+  padding: calc(28px + env(safe-area-inset-top)) calc(22px + env(safe-area-inset-right))
+           calc(60px + env(safe-area-inset-bottom)) calc(22px + env(safe-area-inset-left));
+}
+.back {
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+  color: var(--ink-soft); font-weight: 600; font-size: 14px; margin-bottom: 26px;
+  border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; background: var(--card);
+}
+.back svg { width: 16px; height: 16px; }
+h1 { font-family: 'Fraunces', serif; font-weight: 800; font-size: clamp(28px, 6vw, 40px);
+  line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 6px; }
+.updated { color: var(--ink-soft); font-size: 14px; margin: 0 0 30px; }
+h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; margin: 34px 0 10px; }
+p, li { color: var(--ink); font-size: 16px; }
+p { margin: 0 0 14px; }
+ul { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 8px; }
+strong { font-weight: 700; }
+a { color: var(--mark); }
+.note { color: var(--ink-soft); font-size: 14px; border-left: 3px solid var(--line);
+  padding: 4px 0 4px 14px; margin: 0 0 16px; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+.foot { color: var(--ink-soft); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="index.html#settings" onclick="if(history.length>1){history.back();return false;}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back
+  </a>
+
+  <h1>Terms of Service</h1>
+  <p class="updated">Last updated: 17 June 2026</p>
+
+  <p>These terms govern your use of the <strong>Cortex</strong> app ("the app", "we", "us"), provided by
+  <strong>Cortex</strong>. By downloading or using the app, you agree to these terms. If you do not agree,
+  please don't use the app. Questions? Contact us at
+  <a href="mailto:Eddie.kung1@icloud.com">Eddie.kung1@icloud.com</a>.</p>
+
+  <h2>What the app does</h2>
+  <p>Cortex generates multiple-choice retention quizzes from books you search for or from notes you paste,
+  and tracks your progress with XP, ranks, grades, streaks, and spaced repetition. Quiz questions are
+  produced by an artificial-intelligence service.</p>
+
+  <h2>Eligibility</h2>
+  <p>You must be at least 13 years old (or the minimum age required in your country) to use the app. By
+  using it, you confirm that you meet this requirement.</p>
+
+  <h2>AI-generated content — please read</h2>
+  <p>Quiz questions, answers, and explanations are generated automatically by an AI model and may be
+  <strong>inaccurate, incomplete, or out of date</strong>. The app is a study and self-testing aid for
+  personal use. It is not a source of authoritative facts, and you should not rely on it for academic,
+  professional, medical, legal, financial, or other important decisions. Always verify important
+  information against the original book or a reliable source.</p>
+
+  <h2>Your accounts</h2>
+  <p>Creating an account is optional and is used to sync your progress across devices. You may sign in
+  using Sign in with Apple or Google. You are responsible for keeping access to your sign-in method
+  secure. You can delete your synced data from Settings, and you can request full account deletion by
+  emailing <a href="mailto:Eddie.kung1@icloud.com">Eddie.kung1@icloud.com</a>.</p>
+
+  <h2>Acceptable use</h2>
+  <p>When using the app, you agree not to:</p>
+  <ul>
+    <li>Use it for any unlawful purpose, or paste content you don't have the right to use;</li>
+    <li>Attempt to interfere with, overload, or circumvent the app's rate limits or security;</li>
+    <li>Reverse engineer, scrape, or misuse the app's services or our quiz-generation endpoint;</li>
+    <li>Use the app to generate or store content that is illegal, harmful, or abusive.</li>
+  </ul>
+  <p class="note">The notes you paste are sent to our quiz-generation provider to create questions. Don't
+  paste anything you wouldn't want processed for that purpose. See our
+  <a href="privacy.html">Privacy Policy</a> for details on how data is handled.</p>
+
+  <h2>Intellectual property</h2>
+  <p>The app, its design, and its original content are owned by us. Book titles, authors, and any book
+  content referenced remain the property of their respective owners; the app generates questions about
+  books for study purposes and does not reproduce their text. Notes you paste remain yours — we only use
+  them to generate your quiz.</p>
+
+  <h2>Third-party services</h2>
+  <p>The app relies on third-party services to work, including Anthropic (quiz generation), Open Library
+  (book search), Supabase (accounts and sync, if you create an account), and Apple or Google (sign-in).
+  Your use of those features is also subject to the relevant provider's terms.</p>
+
+  <h2>Availability and changes</h2>
+  <p>We may update, change, suspend, or discontinue the app or any feature at any time, and we may set or
+  change usage limits. We aren't liable to you for any change to or discontinuation of the app.</p>
+
+  <h2>Disclaimer of warranties</h2>
+  <p>The app is provided "as is" and "as available", without warranties of any kind, whether express or
+  implied, including fitness for a particular purpose and accuracy of generated content, to the fullest
+  extent permitted by law.</p>
+
+  <h2>Limitation of liability</h2>
+  <p>To the fullest extent permitted by law, we will not be liable for any indirect, incidental, or
+  consequential damages, or for any loss arising from your reliance on AI-generated quiz content. Nothing
+  in these terms limits liability that cannot be limited under applicable law, including your statutory
+  consumer rights.</p>
+
+  <h2>App Store</h2>
+  <p>If you obtained the app through the Apple App Store, Apple is not a party to these terms and is not
+  responsible for the app or its content. Apple's standard Licensed Application End User License Agreement
+  also applies to your use of the app, and Apple and its subsidiaries are third-party beneficiaries of
+  these terms with the right to enforce them.</p>
+
+  <h2>Termination</h2>
+  <p>You may stop using the app at any time by deleting it. We may suspend or end your access if you
+  breach these terms.</p>
+
+  <h2>Changes to these terms</h2>
+  <p>We may update these terms from time to time. We'll revise the "Last updated" date above, and your
+  continued use of the app after changes means you accept the updated terms.</p>
+
+  <h2>Governing law</h2>
+  <p>These terms are governed by the laws of England and Wales, without regard to conflict-of-laws rules.</p>
+
+  <hr />
+  <p class="foot">Cortex is provided by Cortex. Contact:
+  <a href="mailto:Eddie.kung1@icloud.com">Eddie.kung1@icloud.com</a>.</p>
+
+</div>
+</body>
+</html>

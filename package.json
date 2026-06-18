@@ -1,0 +1,26 @@
+{
+  "name": "book-retention-quiz",
+  "version": "1.0.0",
+  "description": "Search any published book and take an AI-generated retention quiz",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "ios:add": "cap add ios",
+    "ios:sync": "cap sync ios",
+    "ios:open": "cap open ios"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@capacitor/local-notifications": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0",
+    "@revenuecat/purchases-capacitor": "^9.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+# secrets — never commit your real key
+.env
+
+# dependencies
+node_modules/
+
+# Capacitor native project (regenerated with `npx cap add ios`)
+ios/
+
+# misc
+.DS_Store
+*.log
