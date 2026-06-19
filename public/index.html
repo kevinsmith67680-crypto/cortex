@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Retain — book retention quizzes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -18,10 +18,14 @@
   --right: #4ecb86; --wrong: #e0816f;
 }
 * { box-sizing: border-box; }
+img, svg, video, canvas { max-width: 100%; }
+.bookcard > span { flex: 1; min-width: 0; }
 html, body { margin: 0; }
-html { background: var(--paper); }
+html { background: var(--paper); height: 100%; overflow: hidden; }
 body {
-  min-height: 100vh; background: var(--paper); color: var(--ink);
+  height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+  overflow-wrap: break-word; word-break: break-word;
+  background: var(--paper); color: var(--ink);
   font-family: 'Public Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
   transition: background 250ms ease, color 250ms ease;
   overscroll-behavior: none;
@@ -166,7 +170,7 @@ input.search:focus-visible, textarea.notes:focus-visible, input.text:focus-visib
 
 /* auth gate (mandatory sign-in) */
 #authGate { display: none; position: fixed; inset: 0; z-index: 100; background: var(--paper);
-  overflow-y: auto; padding: calc(28px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
+  overflow-y: auto; overscroll-behavior: contain; padding: calc(28px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));
   align-items: center; justify-content: center; }
 .gatecard { width: 100%; max-width: 380px; margin: auto; text-align: center; }
 .gateh1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; line-height: 1.18; color: var(--ink); margin: 0 0 12px; }
@@ -568,7 +572,7 @@ input.chip { -webkit-appearance: none; appearance: none; cursor: text; min-width
 // API_BASE — where the quiz server lives.
 //   Web (served by server.js): leave "".  iOS app (Capacitor): set Render URL.
 // ============================================================================
-const API_BASE = "https://retain-quiz.onrender.com";
+const API_BASE = "https://retain-quiz-8g2a.onrender.com";
 
 // ============================================================================
 // SUPABASE — optional cloud sync. Paste your Project URL and *publishable*
@@ -755,7 +759,7 @@ function openNotifications() {
   $("tab-subscription")?.classList.add("hidden");
   $("tab-notifications").classList.remove("hidden");
   renderNotifications();
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 
 function openHelp() {
@@ -763,7 +767,7 @@ function openHelp() {
   $("tab-notifications")?.classList.add("hidden");
   $("tab-subscription")?.classList.add("hidden");
   $("tab-help").classList.remove("hidden");
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 
 // ---------- subscription, monthly book-quiz counter & entitlement ----------
@@ -847,7 +851,7 @@ async function openSubscription() {
   $("tab-help")?.classList.add("hidden");
   $("tab-subscription").classList.remove("hidden");
   renderSubscription();
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
   if (rcLive()) { await rcLoadOfferings(); renderSubscription(); } // refresh with live store prices
 }
 
@@ -862,7 +866,7 @@ function showLimitReached(kind) {
 // ---------- RevenueCat (real in-app purchases on device) ----------
 const RC = () => window.Capacitor?.Plugins?.Purchases || null;
 const rcLive = () => !!RC() && !!(RC_APPLE_API_KEY || RC_GOOGLE_API_KEY);
-let rcOfferings = null, rcReady = false;
+let rcOfferings = null, rcReady = false, rcLastError = "";
 
 function rcTierFromInfo(info) {
   const active = (info && info.entitlements && info.entitlements.active) || {};
@@ -889,8 +893,25 @@ async function initRevenueCat() {
 
 async function rcLoadOfferings() {
   if (!rcLive()) return null;
-  try { const res = await RC().getOfferings(); rcOfferings = res && res.current ? res.current : null; return rcOfferings; }
-  catch { return null; }
+  try {
+    const res = await RC().getOfferings();
+    rcOfferings = res && res.current ? res.current : null;
+    if (!rcOfferings) {
+      rcLastError = "no-current-offering";
+      console.warn("[RC] No CURRENT offering. Set one as Current in the RevenueCat dashboard. all offerings:", res && res.all);
+    } else if (!rcOfferings.availablePackages || !rcOfferings.availablePackages.length) {
+      rcLastError = "empty-packages";
+      console.warn("[RC] Current offering has NO available packages — the store products didn't load (Paid Apps agreement, product status, or sandbox setup).");
+    } else {
+      rcLastError = "";
+      console.log("[RC] Loaded packages:", rcOfferings.availablePackages.map((p) => p.identifier + " -> product " + (p.product && p.product.identifier)));
+    }
+    return rcOfferings;
+  } catch (e) {
+    rcLastError = (e && e.message) || "getOfferings-failed";
+    console.warn("[RC] getOfferings() threw:", e);
+    return null;
+  }
 }
 function rcPackageFor(tier) {
   const id = RC_PACKAGES[tier];
@@ -904,8 +925,17 @@ function planPrice(t) {
 }
 
 async function rcPurchase(tier) {
-  const pkg = rcPackageFor(tier);
-  if (!pkg) { $("subMsg").textContent = "That plan isn't available right now — please try again shortly."; return; }
+  if (!rcLive()) { $("subMsg").textContent = "Purchases are only available in the installed app."; return; }
+  if (!rcOfferings) await rcLoadOfferings();
+  let pkg = rcPackageFor(tier);
+  if (!pkg) { await rcLoadOfferings(); pkg = rcPackageFor(tier); } // one fresh try in case the store just woke up
+  if (!pkg) {
+    const want = RC_PACKAGES[tier];
+    const have = ((rcOfferings && rcOfferings.availablePackages) || []).map((p) => p.identifier).join(", ") || "none";
+    console.warn(`[RC] No package for tier "${tier}". Looking for "${want}", offering has: [${have}]. lastError: ${rcLastError}`);
+    $("subMsg").textContent = "That plan isn't available right now — please try again shortly.";
+    return;
+  }
   try {
     $("subMsg").textContent = "Opening checkout…";
     const res = await RC().purchasePackage({ aPackage: pkg });
@@ -1017,7 +1047,7 @@ function go(tab) {
   if (tab === "notes") renderSavedNotes();
   if (tab === "settings") renderSettings();
   if (tab === "home") refreshDueBanner();
-  window.scrollTo(0, 0);
+  document.body.scrollTo(0, 0);
 }
 document.querySelectorAll(".tabbar .tab").forEach((b) => b.addEventListener("click", () => go(b.dataset.tab)));
 
