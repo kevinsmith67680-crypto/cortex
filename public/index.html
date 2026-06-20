@@ -20,21 +20,38 @@
 * { box-sizing: border-box; }
 img, svg, video, canvas { max-width: 100%; }
 .bookcard > span { flex: 1; min-width: 0; }
-html, body { margin: 0; }
-html { background: var(--paper); height: 100%; overflow: hidden; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--paper);
+  overscroll-behavior: none;
+}
+html { overflow: hidden; }
 body {
-  height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   overflow-wrap: break-word; word-break: break-word;
   background: var(--paper); color: var(--ink);
   font-family: 'Public Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
   transition: background 250ms ease, color 250ms ease;
-  overscroll-behavior: none;
+  touch-action: pan-y;
 }
-.shell { max-width: 720px; margin: 0 auto;
+.shell {
+  max-width: 720px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   padding-top: calc(40px + env(safe-area-inset-top));
   padding-left: calc(22px + env(safe-area-inset-left));
   padding-right: calc(22px + env(safe-area-inset-right));
-  padding-bottom: 130px; }
+  padding-bottom: calc(130px + env(safe-area-inset-bottom));
+}
 
 .brand {
   font-family: 'Fraunces', serif; font-weight: 800; font-size: 18px;
