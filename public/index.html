@@ -48,8 +48,8 @@ body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   padding-top: calc(40px + env(safe-area-inset-top));
-  padding-left: calc(22px + env(safe-area-inset-left));
-  padding-right: calc(22px + env(safe-area-inset-right));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
   padding-bottom: calc(130px + env(safe-area-inset-bottom));
 }
 
@@ -334,6 +334,115 @@ input.chip { -webkit-appearance: none; appearance: none; cursor: text; min-width
   width: 8px; height: 8px; background: var(--wrong); border-radius: 99px; display: none; }
 .tabbar .tab.has-due .badge-dot::after { display: block; }
 </style>
+
+<style id="iphone-app-viewport-fix">
+/* iPhone/WebView viewport lock: prevents black bounce headers/footers */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden !important;
+  background: var(--paper) !important;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  max-width: 100vw;
+}
+
+/* Capacitor/iOS safe viewport sizing */
+@supports (height: 100dvh) {
+  html,
+  body {
+    height: 100dvh;
+  }
+}
+
+/* Main app content is the only scrollable area */
+.shell {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  background: var(--paper);
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  /* Bottom padding equals the fixed menu/footer height */
+  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+}
+
+/* The menu bar is now the visual footer of the app */
+.tabbar {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 1000;
+  background: var(--card) !important;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding-left: max(8px, env(safe-area-inset-left));
+  padding-right: max(8px, env(safe-area-inset-right));
+  min-height: calc(64px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
+}
+
+.tabbar .tab {
+  min-height: 48px;
+}
+
+/* Auth screen also owns the viewport, with no exposed body behind it */
+#authGate {
+  inset: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  background: var(--paper) !important;
+}
+
+/* Extra guard against accidental horizontal overflow */
+* {
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .shell {
+    max-width: none;
+    padding-top: calc(20px + env(safe-area-inset-top));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .tabbar {
+    max-width: none;
+  }
+
+  .brand {
+    margin-bottom: 22px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 8vw, 34px) !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="authGate">
@@ -947,10 +1056,26 @@ async function rcPurchase(tier) {
   let pkg = rcPackageFor(tier);
   if (!pkg) { await rcLoadOfferings(); pkg = rcPackageFor(tier); } // one fresh try in case the store just woke up
   if (!pkg) {
-    const want = RC_PACKAGES[tier];
-    const have = ((rcOfferings && rcOfferings.availablePackages) || []).map((p) => p.identifier).join(", ") || "none";
-    console.warn(`[RC] No package for tier "${tier}". Looking for "${want}", offering has: [${have}]. lastError: ${rcLastError}`);
-    $("subMsg").textContent = "That plan isn't available right now — please try again shortly.";
+    const debug = {
+      tier,
+      lookingFor: RC_PACKAGES[tier],
+      rcLastError,
+      offeringId: rcOfferings?.identifier || null,
+      packages: (rcOfferings?.availablePackages || []).map((p) => ({
+        packageIdentifier: p.identifier,
+        productIdentifier: p.product?.identifier,
+        price: p.product?.priceString,
+        title: p.product?.title,
+      })),
+    };
+
+    console.warn("[RC DEBUG]", debug);
+
+    $("subMsg").textContent =
+      "RevenueCat debug: looking for " + debug.lookingFor +
+      " | offering: " + (debug.offeringId || "none") +
+      " | packages: " + JSON.stringify(debug.packages);
+
     return;
   }
   try {
@@ -1609,3 +1734,13 @@ applyTheme(); renderBadge(); refreshDueBanner(); renderAccount(); renderSubRow()
 </script>
 </body>
 </html>
+
+<style>
+@media (max-width:480px){
+  h1{font-size:32px!important;line-height:1.15!important;}
+  .searchrow{flex-direction:column;}
+  .btn,input.search,input.text,textarea.notes{width:100%;}
+  .statgrid{grid-template-columns:1fr;}
+  .tabbar .tab .tlbl{font-size:10px;}
+}
+</style>
