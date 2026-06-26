@@ -72,6 +72,87 @@ function effectiveTier(acctId, clientTier) {
   return ["free", "pro", "unlimited"].includes(clientTier) ? clientTier : "free";
 }
 
+
+// --- FirstPromoter affiliate sales -----------------------------------------
+// Keep the API key in Render/local environment variables; never ship it in
+// public/index.html. The account id is not secret, but it is also read from env
+// so production config lives in one place.
+const FIRSTPROMOTER_API_KEY = process.env.FIRSTPROMOTER_API_KEY || "";
+const FIRSTPROMOTER_ACCOUNT_ID = process.env.FIRSTPROMOTER_ACCOUNT_ID || "";
+const FP_SALE_EVENTS = new Set(["INITIAL_PURCHASE", "RENEWAL", "NON_RENEWING_PURCHASE"]);
+const fpSaleEventsSeen = new Set();
+
+function rcEmail(ev) {
+  return ev?.subscriber_attributes?.$email?.value || ev?.subscriber_attributes?.email?.value || null;
+}
+
+function rcAmountInCents(ev) {
+  const value = Number(
+    ev?.price_in_purchased_currency ??
+    ev?.price ??
+    ev?.purchased_price ??
+    0
+  );
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.round(value * 100);
+}
+
+async function sendFirstPromoterSale(ev) {
+  if (!FIRSTPROMOTER_API_KEY || !FIRSTPROMOTER_ACCOUNT_ID) {
+    console.warn("[FirstPromoter] Missing FIRSTPROMOTER_API_KEY or FIRSTPROMOTER_ACCOUNT_ID; sale not sent.");
+    return;
+  }
+
+  if (!FP_SALE_EVENTS.has(ev?.type)) return;
+
+  const uid = ev.app_user_id || null;
+  const email = rcEmail(ev);
+  if (!uid && !email) {
+    console.warn("[FirstPromoter] RevenueCat sale event had no app_user_id or email; sale not sent.");
+    return;
+  }
+
+  const eventId = ev.transaction_id || ev.original_transaction_id || ev.id;
+  if (!eventId) {
+    console.warn("[FirstPromoter] RevenueCat sale event had no transaction/id; sale not sent.");
+    return;
+  }
+  if (fpSaleEventsSeen.has(eventId)) return;
+  fpSaleEventsSeen.add(eventId);
+  if (fpSaleEventsSeen.size > 10000) fpSaleEventsSeen.clear();
+
+  const body = {
+    uid,
+    email,
+    event_id: eventId,
+    amount: rcAmountInCents(ev),
+    currency: ev.currency || ev.currency_code || "USD",
+    plan: ev.product_id || ev.product_identifier || undefined,
+  };
+  Object.keys(body).forEach((k) => body[k] == null && delete body[k]);
+
+  try {
+    const fp = await fetch("https://api.firstpromoter.com/api/v2/track/sale", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${FIRSTPROMOTER_API_KEY}`,
+        "Account-ID": FIRSTPROMOTER_ACCOUNT_ID,
+      },
+      body: JSON.stringify(body),
+    });
+    const text = await fp.text();
+    if (!fp.ok) {
+      // A 404 usually means the user was not a referred lead in FirstPromoter.
+      console.warn(`[FirstPromoter] Sale not accepted (${fp.status}): ${text}`);
+    } else {
+      console.log(`[FirstPromoter] Sale tracked for uid=${uid || "no-uid"}, event_id=${eventId}`);
+    }
+  } catch (err) {
+    console.warn("[FirstPromoter] Sale request failed:", err.message);
+  }
+}
+
 function clientIp(req) {
   // Render sits behind a proxy; the real client IP is first in x-forwarded-for.
   const fwd = req.headers["x-forwarded-for"];
@@ -362,7 +443,8 @@ const server = http.createServer(async (req, res) => {
           if (expiring || tier === "free") verified.set(uid, { tier: "free", exp: 0 });
           else verified.set(uid, { tier, exp: ev.expiration_at_ms || 0 });
         }
-      } catch { /* ignore malformed */ }
+        sendFirstPromoterSale(ev).catch((err) => console.warn("[FirstPromoter] Background sale tracking failed:", err.message));
+      } catch (err) { console.warn("[RevenueCat] Malformed webhook:", err.message); }
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: true }));
     });
@@ -395,7 +477,13 @@ const server = http.createServer(async (req, res) => {
   }
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end("Not found"); return; }
-    res.writeHead(200, { "Content-Type": MIME[path.extname(filePath)] || "application/octet-stream" });
+    const ext = path.extname(filePath);
+    const isIndex = path.basename(filePath) === "index.html";
+    const headers = {
+      "Content-Type": MIME[ext] || "application/octet-stream",
+      "Cache-Control": isIndex ? "no-cache" : "public, max-age=31536000, immutable"
+    };
+    res.writeHead(200, headers);
     res.end(data);
   });
 });

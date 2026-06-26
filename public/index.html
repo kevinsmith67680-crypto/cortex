@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#fbfaf6" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Retain — book retention quizzes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -501,6 +501,279 @@ body::after {
 }
 </style>
 
+
+<style id="capacitor-ios-safe-area-letterbox-fix">
+/*
+  Capacitor / iOS edge-to-edge fix.
+  Keep viewport-fit=cover in the viewport meta tag, then let the app paint
+  into the iPhone safe areas rather than leaving black/white bars.
+*/
+html {
+  width: 100%;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  background: var(--paper) !important;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  margin: 0;
+  padding: 0;
+  background: var(--paper) !important;
+  overflow: hidden;
+}
+
+/* Paint the status-bar/notch and home-indicator areas with app colors. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: var(--paper);
+  z-index: 2147483646;
+  pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: env(safe-area-inset-bottom);
+  background: var(--card);
+  z-index: 2147483645;
+  pointer-events: none;
+}
+
+/* Main scroll area fills the WebView and starts below the notch. */
+.shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+  margin: 0;
+  background: var(--paper);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+/* Bottom nav extends through the iPhone home-indicator safe area. */
+.tabbar {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: none;
+  background: var(--card) !important;
+  padding-top: 8px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding-left: max(8px, env(safe-area-inset-left));
+  padding-right: max(8px, env(safe-area-inset-right));
+  min-height: calc(64px + env(safe-area-inset-bottom));
+}
+
+/* Full-screen auth screen also respects the notch/home indicator. */
+#authGate {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  background: var(--paper) !important;
+  padding-top: calc(28px + env(safe-area-inset-top));
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+</style>
+
+
+
+<style id="cortex-android-ux-polish">
+/* Cortex UX polish for Android/iOS safe areas, touch spacing, and footer focus state. */
+:root {
+  --touch-size: 56px;
+}
+
+.shell {
+  padding-top: calc(34px + env(safe-area-inset-top)) !important;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+}
+
+.brand {
+  margin-bottom: 28px !important;
+  min-height: 44px;
+  align-items: center;
+}
+
+.brandlogo {
+  max-height: 38px;
+}
+
+.rankbadge {
+  min-height: 42px;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.lede {
+  margin-bottom: 34px !important;
+}
+
+.searchrow {
+  gap: 14px !important;
+  margin-bottom: 26px;
+}
+
+input.search,
+input.text,
+textarea.notes,
+.acctfield {
+  border-radius: 8px !important;
+  padding: 16px 18px !important;
+  min-height: var(--touch-size);
+}
+
+.btn {
+  min-height: var(--touch-size);
+  border-radius: 8px !important;
+  padding: 15px 22px !important;
+}
+
+/* More comfortable spacing between paired buttons throughout the app. */
+.acctrow,
+.sharerow,
+.optgroup,
+#tab-notes div[style*="display:flex"],
+#view-score div[style*="display:flex"] {
+  gap: 14px !important;
+}
+
+#notesQuizBtn,
+#notesSaveBtn,
+#gateInBtn,
+#gateUpBtn,
+#acctInBtn,
+#acctUpBtn {
+  flex: 1 1 180px;
+}
+
+.results {
+  gap: 14px !important;
+}
+
+.fact,
+.libitem,
+.libbook,
+.plan,
+.stat,
+.ach {
+  border-radius: 12px !important;
+}
+
+.fact {
+  padding: 18px !important;
+  gap: 14px !important;
+}
+
+.fact .fb,
+.booktitle,
+.libitem .tt,
+.libbook .tt {
+  line-height: 1.45;
+}
+
+.bookcard {
+  border-radius: 10px !important;
+  padding: 16px !important;
+}
+
+/* Remove the yellow Android/WebView focus rectangle on footer tabs. */
+.tabbar .tab,
+.tabbar .tab:focus,
+.tabbar .tab:focus-visible,
+.tabbar .tab:active {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabbar {
+  min-height: calc(76px + env(safe-area-inset-bottom)) !important;
+  padding-top: 10px !important;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+}
+
+.tabbar .tab {
+  min-height: 54px !important;
+  border-radius: 12px;
+}
+
+.tabbar .tab.on {
+  color: var(--ink) !important;
+  background: transparent !important;
+}
+
+.tabbar .tab.on svg {
+  stroke: var(--mark) !important;
+}
+
+.tabbar .tab .tlbl {
+  font-size: 11px !important;
+}
+
+@media (max-width: 480px) {
+  .shell {
+    padding-top: calc(36px + env(safe-area-inset-top)) !important;
+    padding-left: max(18px, env(safe-area-inset-left)) !important;
+    padding-right: max(18px, env(safe-area-inset-right)) !important;
+  }
+
+  .brand {
+    margin-bottom: 26px !important;
+  }
+
+  h1 {
+    font-size: clamp(32px, 8.4vw, 40px) !important;
+    line-height: 1.12 !important;
+  }
+
+  .lede,
+  p,
+  li {
+    font-size: 17px;
+  }
+
+  .searchrow {
+    flex-direction: column !important;
+  }
+
+  .searchrow .btn,
+  .searchrow input.search {
+    width: 100%;
+  }
+
+  #notesQuizBtn,
+  #notesSaveBtn,
+  #gateInBtn,
+  #gateUpBtn,
+  #acctInBtn,
+  #acctUpBtn {
+    flex: 1 1 100%;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="authGate">
@@ -774,7 +1047,7 @@ const SUPABASE_KEY = "sb_publishable_C-65G08kfjq2D7AcYsMgkQ_3TQ1l3zU";
 // match the entitlement identifiers you create in RevenueCat.
 // ============================================================================
 const RC_APPLE_API_KEY = "appl_ufjiwmLfyLYIknljTufEWIbonKu";
-const RC_GOOGLE_API_KEY = "";  // e.g. "goog_xxxxxxxxxxxxxxxxxxxx"
+const RC_GOOGLE_API_KEY = "goog_pFPdnEuUowXvUwKmxWCszMQUXCH";  // e.g. "goog_xxxxxxxxxxxxxxxxxxxx"
 // Map your RevenueCat ENTITLEMENT identifiers to Cortex tiers (highest first).
 const RC_ENTITLEMENTS = [
   { id: "unlimited", tier: "unlimited" },
@@ -784,17 +1057,18 @@ const RC_ENTITLEMENTS = [
 const RC_PACKAGES = { pro: "pro_monthly", unlimited: "unlimited_monthly" };
 
 const $ = (id) => document.getElementById(id);
+function hideIfPresent(id) { const el = $(id); if (el) el.classList.add("hidden"); }
 const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-  raw(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  raw(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch { return d; } },
 };
 const DAY = 86400000;
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 // ---------- progression ----------
 const XP_PER_CORRECT = 25, PERFECT_BONUS = 75;
-const RANKS = ["Skimmer","Browser","Bookworm","Page Turner","Annotator","Plot Keeper","Librarian","Archivist","Bibliophile","Literary Legend"];
+const RANKS = ["Skimmer","Browser","Bookworm","Page Turner","Annotator","Plot Keeper","Librarian","Archivist","Bibliophile","Literary Legend","Insight Seeker","Thought Collector","Margin Sage","Chapter Master","Knowledge Keeper","Idea Hunter","Wisdom Gatherer","Deep Reader","Memory Builder","Concept Weaver","Insight Curator","Meaning Maker","Reflection Scholar","Comprehension Expert","Learning Architect","Knowledge Alchemist","Pattern Finder","Synthesis Master","Master Reader","Wisdom Archivist","Cognitive Cartographer","Learning Virtuoso","Insight Virtuoso","Knowledge Sage","Retention Master","Wisdom Scholar","Grand Bibliophile","Mind Architect","Wisdom Luminary","Living Library"];
 const xpToAdvance = (lvl) => 400 + (lvl - 1) * 200;
 function levelFromXp(total) { let level = 1, rem = total; while (rem >= xpToAdvance(level)) { rem -= xpToAdvance(level); level++; } return { level, into: rem, need: xpToAdvance(level) }; }
 const rankFor = (lvl) => RANKS[Math.min(Math.floor((lvl - 1) / 3), RANKS.length - 1)];
@@ -861,7 +1135,7 @@ const getStreak = () => LS.get("retain:streak", { count: 0 }).count;
 
 // ---------- notifications (Capacitor LocalNotifications on device; limited/no-op on web) ----------
 const NOTIF_DAILY_ID = 1001, NOTIF_STREAK_ID = 1002;
-const LN = () => window.Capacitor?.Plugins?.LocalNotifications || null;
+const LN = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
 function getNotif() { return LS.get("retain:notif", { enabled: false, dailyOn: true, time: "19:00", streakOn: true }); }
 function setNotif(n) { LS.set("retain:notif", n); }
 
@@ -939,19 +1213,19 @@ function renderNotifications() {
 
 function openNotifications() {
   TABS.forEach((t) => $("tab-" + t).classList.add("hidden"));
-  $("tab-help")?.classList.add("hidden");
-  $("tab-subscription")?.classList.add("hidden");
+  hideIfPresent("tab-help");
+  hideIfPresent("tab-subscription");
   $("tab-notifications").classList.remove("hidden");
   renderNotifications();
-  document.body.scrollTo(0, 0);
+  scrollAppTop();
 }
 
 function openHelp() {
   TABS.forEach((t) => $("tab-" + t).classList.add("hidden"));
-  $("tab-notifications")?.classList.add("hidden");
-  $("tab-subscription")?.classList.add("hidden");
+  hideIfPresent("tab-notifications");
+  hideIfPresent("tab-subscription");
   $("tab-help").classList.remove("hidden");
-  document.body.scrollTo(0, 0);
+  scrollAppTop();
 }
 
 // ---------- subscription, monthly book-quiz counter & entitlement ----------
@@ -1031,12 +1305,14 @@ function choosePlan(tier) {
 
 async function openSubscription() {
   TABS.forEach((t) => $("tab-" + t).classList.add("hidden"));
-  $("tab-notifications")?.classList.add("hidden");
-  $("tab-help")?.classList.add("hidden");
+  hideIfPresent("tab-notifications");
+  hideIfPresent("tab-help");
   $("tab-subscription").classList.remove("hidden");
   renderSubscription();
-  document.body.scrollTo(0, 0);
-  if (rcLive()) { await rcLoadOfferings(); renderSubscription(); } // refresh with live store prices
+  scrollAppTop();
+  if (rcLive()) {
+    rcLoadOfferings().then(() => renderSubscription()).catch((e) => console.warn("[RC] refresh prices failed", e));
+  } // refresh with live store prices without blocking navigation
 }
 
 function showLimitReached(kind) {
@@ -1048,58 +1324,13 @@ function showLimitReached(kind) {
 }
 
 // ---------- RevenueCat (real in-app purchases on device) ----------
-const RC = () => window.Capacitor?.Plugins?.Purchases || null;
+const RC = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases) || null;
 const rcLive = () => !!RC() && !!(RC_APPLE_API_KEY || RC_GOOGLE_API_KEY);
-let rcOfferings = null, rcReady = false, rcLastError = "";
-let rcLastRawOfferings = null;
+let rcOfferings = null, rcReady = false, rcLastError = "", rcConfiguredAppUserID = null;
 
-function rcSafeStringify(value) {
-  try { return JSON.stringify(value, null, 2); }
-  catch (e) { return String(value); }
-}
-
-function rcDebugSummary() {
-  const current = rcOfferings;
-  return {
-    rcLive: rcLive(),
-    rcReady,
-    platform: window.Capacitor?.getPlatform?.() || "unknown",
-    hasPurchasesPlugin: !!RC(),
-    hasAppleKey: !!RC_APPLE_API_KEY,
-    hasGoogleKey: !!RC_GOOGLE_API_KEY,
-    rcLastError,
-    currentOfferingId: current?.identifier || null,
-    currentOfferingServerDescription: current?.serverDescription || null,
-    availablePackages: (current?.availablePackages || []).map((p) => ({
-      packageIdentifier: p.identifier,
-      packageType: p.packageType,
-      productIdentifier: p.product?.identifier,
-      price: p.product?.priceString,
-      title: p.product?.title,
-      description: p.product?.description,
-    })),
-    allOfferingIds: rcLastRawOfferings?.all ? Object.keys(rcLastRawOfferings.all) : [],
-    rawCurrentExists: !!rcLastRawOfferings?.current,
-  };
-}
-
-function rcShowDebug(prefix, extra) {
-  const debug = Object.assign({ note: prefix }, rcDebugSummary(), extra || {});
-  console.warn("[RC DEBUG]", debug);
-
-  const shortPackages = debug.availablePackages.map((p) =>
-    p.packageIdentifier + "→" + (p.productIdentifier || "no-product") + " " + (p.price || "")
-  ).join("; ") || "none";
-
-  $("subMsg").textContent =
-    "RevenueCat debug: " + prefix +
-    " | rcLive: " + debug.rcLive +
-    " | rcReady: " + debug.rcReady +
-    " | platform: " + debug.platform +
-    " | offering: " + (debug.currentOfferingId || "none") +
-    " | lastError: " + (debug.rcLastError || "none") +
-    " | packages: " + shortPackages +
-    (extra?.lookingFor ? " | looking for: " + extra.lookingFor : "");
+function safeText(id, text) {
+  const el = $(id);
+  if (el) el.textContent = text;
 }
 
 function rcTierFromInfo(info) {
@@ -1108,86 +1339,89 @@ function rcTierFromInfo(info) {
   return "free";
 }
 function applyCustomerInfo(info) {
-  setSub(rcTierFromInfo(info)); renderSubRow();
-  if (!$("tab-subscription").classList.contains("hidden")) renderSubscription();
+  setSub(rcTierFromInfo(info));
+  renderSubRow();
+  if ($("tab-subscription") && !$("tab-subscription").classList.contains("hidden")) renderSubscription();
 }
 
 async function initRevenueCat() {
-  if (!rcLive()) {
-    console.warn("[RC DEBUG] rcLive false on init", {
-      hasPurchasesPlugin: !!RC(),
-      hasAppleKey: !!RC_APPLE_API_KEY,
-      hasGoogleKey: !!RC_GOOGLE_API_KEY,
-      platform: window.Capacitor?.getPlatform?.() || "unknown",
-    });
-    return;
-  }
+  if (!rcLive()) return;
   try {
-    const isApple = window.Capacitor?.getPlatform?.() === "ios";
-    const apiKey = isApple ? RC_APPLE_API_KEY : RC_GOOGLE_API_KEY;
+    const platform = (window.Capacitor && typeof window.Capacitor.getPlatform === "function") ? window.Capacitor.getPlatform() : "web";
+    const apiKey = platform === "ios" ? RC_APPLE_API_KEY : platform === "android" ? RC_GOOGLE_API_KEY : "";
+    if (!apiKey) { rcLastError = "missing-platform-api-key"; return; }
 
-    console.warn("[RC DEBUG] initRevenueCat starting", {
-      platform: window.Capacitor?.getPlatform?.() || "unknown",
-      isApple,
-      hasApiKey: !!apiKey,
-      appUserID: subAcctId(),
-    });
+    const appUserID = subAcctId();
+    await RC().configure({ apiKey, appUserID });
+    rcConfiguredAppUserID = appUserID;
+    rcReady = true;
 
-    if (!apiKey) {
-      rcLastError = "missing-platform-api-key";
-      return;
+    await syncRevenueCatIdentity();
+
+    try {
+      const { customerInfo } = await RC().getCustomerInfo();
+      applyCustomerInfo(customerInfo);
+    } catch (e) {
+      console.warn("[RC] getCustomerInfo failed", e);
     }
 
-    await RC().configure({ apiKey, appUserID: subAcctId() });
-    rcReady = true;
-    console.warn("[RC DEBUG] RevenueCat configured");
-
-    const { customerInfo } = await RC().getCustomerInfo();
-    console.warn("[RC DEBUG] customerInfo", customerInfo);
-    applyCustomerInfo(customerInfo);
-
-    await rcLoadOfferings();
+    // Preload offerings in the background, but never block navigation/startup.
+    rcLoadOfferings().catch((e) => console.warn("[RC] preload offerings failed", e));
   } catch (e) {
-    rcLastError = (e && (e.message || e.errorMessage || e.code)) || "configure-or-customerInfo-failed";
-    console.warn("[RC DEBUG] initRevenueCat failed", e);
+    rcLastError = (e && (e.message || e.errorMessage || e.code)) || "configure-failed";
+    console.warn("[RC] configure failed", e);
+  }
+}
+
+async function syncRevenueCatIdentity() {
+  if (!rcLive()) return;
+  if (!rcReady) return;
+
+  const targetAppUserID = subAcctId();
+  try {
+    // When Supabase signs a user in after RevenueCat was already configured with
+    // the device id, move the RevenueCat customer to the Supabase user id. This
+    // makes Supabase user.id === RevenueCat app_user_id === FirstPromoter sale uid.
+    if (targetAppUserID && rcConfiguredAppUserID !== targetAppUserID && RC().logIn) {
+      const res = await RC().logIn({ appUserID: targetAppUserID });
+      rcConfiguredAppUserID = targetAppUserID;
+      if (res && res.customerInfo) applyCustomerInfo(res.customerInfo);
+    }
+
+    // RevenueCat includes subscriber attributes in webhook payloads. FirstPromoter
+    // can then match sales by uid and/or email.
+    if (sbUser && sbUser.email && RC().setAttributes) {
+      try {
+        await RC().setAttributes({ attributes: { "$email": sbUser.email } });
+      } catch (e) {
+        // Older bridge shapes may accept the attributes object directly.
+        try { await RC().setAttributes({ "$email": sbUser.email }); } catch {}
+      }
+    }
+  } catch (e) {
+    console.warn("[RC] identity sync failed", e);
   }
 }
 
 async function rcLoadOfferings() {
-  if (!rcLive()) {
-    rcLastError = "rcLive-false";
-    rcShowDebug("rcLoadOfferings skipped: rcLive false");
-    return null;
-  }
+  if (!rcLive()) return null;
   try {
-    console.warn("[RC DEBUG] calling getOfferings()");
     const res = await RC().getOfferings();
-    rcLastRawOfferings = res;
-
-    console.warn("[RC RAW OFFERINGS]", res);
-    console.warn("[RC RAW OFFERINGS JSON]", rcSafeStringify(res));
-
     rcOfferings = res && res.current ? res.current : null;
-
     if (!rcOfferings) {
       rcLastError = "no-current-offering";
-      console.warn("[RC] No CURRENT offering. Set one as Current in the RevenueCat dashboard. all offerings:", res && res.all);
-      rcShowDebug("no current offering returned by RevenueCat");
+      console.warn("[RC] No current offering returned", res && res.all);
     } else if (!rcOfferings.availablePackages || !rcOfferings.availablePackages.length) {
       rcLastError = "empty-packages";
-      console.warn("[RC] Current offering has NO available packages — the store products didn't load (Paid Apps agreement, product status, sandbox setup, or unsubmitted products).");
-      rcShowDebug("current offering returned with empty packages");
+      console.warn("[RC] Current offering has no available packages");
     } else {
       rcLastError = "";
-      console.log("[RC] Loaded packages:", rcOfferings.availablePackages.map((p) => p.identifier + " -> product " + (p.product && p.product.identifier)));
-      rcShowDebug("offerings loaded");
+      console.log("[RC] Loaded packages", rcOfferings.availablePackages.map((p) => p.identifier));
     }
-
     return rcOfferings;
   } catch (e) {
     rcLastError = (e && (e.message || e.errorMessage || e.code)) || "getOfferings-failed";
-    console.warn("[RC] getOfferings() threw:", e);
-    rcShowDebug("getOfferings threw", { error: rcLastError });
+    console.warn("[RC] getOfferings failed", e);
     return null;
   }
 }
@@ -1203,41 +1437,37 @@ function planPrice(t) {
 }
 
 async function rcPurchase(tier) {
-  if (!rcLive()) { $("subMsg").textContent = "Purchases are only available in the installed app."; return; }
+  if (!rcLive()) { safeText("subMsg", "Purchases are only available in the installed app."); return; }
+  if (!rcReady) await initRevenueCat();
   if (!rcOfferings) await rcLoadOfferings();
   let pkg = rcPackageFor(tier);
-  if (!pkg) { await rcLoadOfferings(); pkg = rcPackageFor(tier); } // one fresh try in case the store just woke up
+  if (!pkg) { await rcLoadOfferings(); pkg = rcPackageFor(tier); }
   if (!pkg) {
     const want = RC_PACKAGES[tier];
     const have = ((rcOfferings && rcOfferings.availablePackages) || []).map((p) => p.identifier).join(", ") || "none";
     console.warn(`[RC] No package for tier "${tier}". Looking for "${want}", offering has: [${have}]. lastError: ${rcLastError}`);
-
-    rcShowDebug("no matching package found", {
-      tier,
-      lookingFor: want,
-      rawOfferings: rcLastRawOfferings,
-    });
-
+    safeText("subMsg", "That plan isn't available right now. Please try again shortly.");
     return;
   }
   try {
-    $("subMsg").textContent = "Opening checkout…";
+    safeText("subMsg", "Opening checkout…");
     const res = await RC().purchasePackage({ aPackage: pkg });
     applyCustomerInfo(res.customerInfo);
-    $("subMsg").textContent = "You're on " + SUB_PLANS[getSub()].name + ". Thanks!";
+    safeText("subMsg", "You're on " + SUB_PLANS[getSub()].name + ". Thanks!");
   } catch (e) {
-    if (e && (e.userCancelled || /cancel/i.test(e.message || ""))) { $("subMsg").textContent = ""; return; }
-    $("subMsg").textContent = "Purchase didn't complete. " + ((e && e.message) || "Please try again.");
+    if (e && (e.userCancelled || /cancel/i.test(e.message || ""))) { safeText("subMsg", ""); return; }
+    safeText("subMsg", "Purchase didn't complete. " + ((e && e.message) || "Please try again."));
   }
 }
 async function rcRestore() {
-  if (!rcLive()) { $("subMsg").textContent = "Restoring purchases is only available in the installed app."; return; }
+  if (!rcLive()) { safeText("subMsg", "Restoring purchases is only available in the installed app."); return; }
+  if (!rcReady) await initRevenueCat();
   try {
-    $("subMsg").textContent = "Restoring…";
+    safeText("subMsg", "Restoring…");
     const res = await RC().restorePurchases();
     applyCustomerInfo(res.customerInfo);
-    $("subMsg").textContent = "Purchases restored — you're on " + SUB_PLANS[getSub()].name + ".";
-  } catch { $("subMsg").textContent = "Couldn't restore purchases. Please try again."; }
+    safeText("subMsg", "Purchases restored — you're on " + SUB_PLANS[getSub()].name + ".");
+  } catch { safeText("subMsg", "Couldn't restore purchases. Please try again."); }
 }
 
 // ---------- achievements ----------
@@ -1250,15 +1480,34 @@ const ACHIEVEMENTS = [
   { id: "notes", ic: "✍️", nm: "In Your Words", ds: "Quiz your own notes", test: (s) => s.usedNotes },
   { id: "review", ic: "🔁", nm: "Spaced Out", ds: "Complete a review session", test: (s) => s.didReview },
   { id: "lvl5", ic: "🏆", nm: "Page Turner", ds: "Reach level 5", test: (s) => s.level >= 5 },
+  { id: "memoryvault", ic: "🏛️", nm: "Memory Vault", ds: "Score 90%+ on the same book 3 times", test: (s) => s.booksWithThree90 >= 1 },
+  { id: "secondbrain", ic: "🧠", nm: "Second Brain", ds: "Complete 100 quizzes", test: (s) => s.totalQuizzes >= 100 },
+  { id: "wisdomkeeper", ic: "📜", nm: "Wisdom Keeper", ds: "Maintain an A or S grade on 10 books", test: (s) => s.booksAtAorS >= 10 },
+  { id: "unforgettable", ic: "🌟", nm: "Unforgettable", ds: "Get 5 perfect scores in a row", test: (s) => s.perfectRun >= 5 },
+  { id: "nightscholar", ic: "🌙", nm: "Night Scholar", ds: "Complete quizzes on 30 different days", test: (s) => s.quizDays >= 30 },
+  { id: "deepthinker", ic: "🔍", nm: "Deep Thinker", ds: "Reach level 20", test: (s) => s.level >= 20 },
+  { id: "lifetimelearner", ic: "🎓", nm: "Lifetime Learner", ds: "Reach level 40", test: (s) => s.level >= 40 },
+  { id: "bookcollector", ic: "📚", nm: "Book Collector", ds: "Quiz 25 different books", test: (s) => s.bookCount >= 25 },
+  { id: "knowledgecompounder", ic: "📈", nm: "Knowledge Compounder", ds: "Complete 50 review sessions", test: (s) => s.reviewCount >= 50 },
+  { id: "livinglibrary", ic: "👑", nm: "Living Library", ds: "Quiz 100 books and reach level 40", test: (s) => s.bookCount >= 100 && s.level >= 40 }
 ];
-function getFlags() { return LS.get("retain:flags", { hadPerfect: false, usedNotes: false, didReview: false, totalQuizzes: 0 }); }
-function setFlags(f) { LS.set("retain:flags", f); }
+function defaultFlags() {
+  return { hadPerfect: false, usedNotes: false, didReview: false, totalQuizzes: 0,
+    reviewCount: 0, perfectRun: 0, quizDays: [], highScoreBooks: {} };
+}
+function getFlags() { return { ...defaultFlags(), ...LS.get("retain:flags", {}) }; }
+function setFlags(f) { LS.set("retain:flags", { ...defaultFlags(), ...f }); }
 function statsSnapshot() {
   const lib = getLibrary(); const f = getFlags();
   const all = Object.values(lib).flatMap((r) => r.attempts);
   const avg = all.length ? Math.round(all.reduce((a, x) => a + x.score / x.total, 0) / all.length * 100) : null;
+  const grades = getGrades();
+  const booksAtAorS = Object.values(grades).filter((g) => g === "A" || g === "S").length;
+  const booksWithThree90 = Object.values(f.highScoreBooks || {}).filter((n) => n >= 3).length;
   return { bookCount: Object.keys(lib).length, totalQuizzes: f.totalQuizzes, hadPerfect: f.hadPerfect,
-    usedNotes: f.usedNotes, didReview: f.didReview, streak: getStreak(), level: levelFromXp(getXp()).level, avg };
+    usedNotes: f.usedNotes, didReview: f.didReview, streak: getStreak(), level: levelFromXp(getXp()).level, avg,
+    reviewCount: f.reviewCount || 0, perfectRun: f.perfectRun || 0, quizDays: (f.quizDays || []).length,
+    booksAtAorS, booksWithThree90 };
 }
 function unlockedAchievements() { const s = statsSnapshot(); return ACHIEVEMENTS.map((a) => ({ ...a, on: a.test(s) })); }
 
@@ -1317,21 +1566,27 @@ function saveNote(title, text) { const n = getSavedNotes(); n.unshift({ id: Date
 function deleteNote(id) { LS.set("retain:notes", getSavedNotes().filter((n) => n.id !== id)); }
 
 // ---------- haptics (works on native via plugin; harmless no-op on web) ----------
-function haptic() { try { if (window.navigator.vibrate) navigator.vibrate(30); if (window.Capacitor?.Plugins?.Haptics) window.Capacitor.Plugins.Haptics.impact({ style: "MEDIUM" }); } catch {} }
+function haptic() { try { if (window.navigator.vibrate) navigator.vibrate(30); if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) window.Capacitor.Plugins.Haptics.impact({ style: "MEDIUM" }); } catch {} }
+
+function scrollAppTop() {
+  const shell = document.querySelector(".shell");
+  if (shell && typeof shell.scrollTo === "function") shell.scrollTo(0, 0);
+  else if (document.body && typeof document.body.scrollTo === "function") document.body.scrollTo(0, 0);
+}
 
 // ============================ NAVIGATION ============================
 const TABS = ["home", "library", "notes", "settings"];
 function go(tab) {
   TABS.forEach((t) => $("tab-" + t).classList.toggle("hidden", t !== tab));
-  $("tab-notifications")?.classList.add("hidden");
-  $("tab-help")?.classList.add("hidden");
-  $("tab-subscription")?.classList.add("hidden");
+  hideIfPresent("tab-notifications");
+  hideIfPresent("tab-help");
+  hideIfPresent("tab-subscription");
   document.querySelectorAll(".tabbar .tab").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
   if (tab === "library") renderLibrary();
   if (tab === "notes") renderSavedNotes();
   if (tab === "settings") renderSettings();
   if (tab === "home") refreshDueBanner();
-  document.body.scrollTo(0, 0);
+  scrollAppTop();
 }
 document.querySelectorAll(".tabbar .tab").forEach((b) => b.addEventListener("click", () => go(b.dataset.tab)));
 
@@ -1361,7 +1616,7 @@ function renderResults(docs) {
   for (const d of docs) {
     const b = { title: d.title, author: (d.author_name && d.author_name[0]) || null, year: d.first_publish_year || null, cover: d.cover_i || null, key: d.key || null, mode: "book" };
     const card = document.createElement("button"); card.className = "bookcard";
-    const cov = b.cover ? '<img class="cover" alt="" src="https://covers.openlibrary.org/b/id/' + b.cover + '-M.jpg" />' : '<div class="cover blank" aria-hidden="true">' + escapeHtml((b.title || "¶").charAt(0)) + "</div>";
+    const cov = b.cover ? '<img class="cover" loading="lazy" decoding="async" alt="" src="https://covers.openlibrary.org/b/id/' + b.cover + '-M.jpg" />' : '<div class="cover blank" aria-hidden="true">' + escapeHtml((b.title || "¶").charAt(0)) + "</div>";
     card.innerHTML = cov + '<span><span class="booktitle">' + escapeHtml(b.title) + '</span><span class="bookmeta">' + escapeHtml(b.author || "Unknown author") + (b.year ? " · " + b.year : "") + "</span></span>";
     card.addEventListener("click", () => generateQuiz(b));
     box.appendChild(card);
@@ -1463,8 +1718,19 @@ function finishQuiz() {
   const pct = Math.round((score / questions.length) * 100);
   // persist results
   if (book.mode !== "review") { recordAttempt(book, score, questions.length); scheduleMisses(book, missedThisQuiz); }
-  const f = getFlags(); f.totalQuizzes++; if (pct === 100) f.hadPerfect = true;
-  if (book.mode === "notes") f.usedNotes = true; if (book.mode === "review") f.didReview = true; setFlags(f);
+  const f = getFlags();
+  f.totalQuizzes++;
+  f.quizDays = Array.from(new Set([...(f.quizDays || []), todayStr()]));
+  if (pct === 100) { f.hadPerfect = true; f.perfectRun = (f.perfectRun || 0) + 1; }
+  else f.perfectRun = 0;
+  if (book.mode === "notes") f.usedNotes = true;
+  if (book.mode === "review") { f.didReview = true; f.reviewCount = (f.reviewCount || 0) + 1; }
+  if (book.mode !== "review" && pct >= 90) {
+    const id = libId(book);
+    f.highScoreBooks = f.highScoreBooks || {};
+    f.highScoreBooks[id] = (f.highScoreBooks[id] || 0) + 1;
+  }
+  setFlags(f);
   bumpStreak();
   syncStreakNotification();
 
@@ -1558,7 +1824,7 @@ function renderLibrary() {
       const r = lib[id]; const last = r.attempts[r.attempts.length - 1];
       const dueN = LS.get("retain:srs:" + id, []).filter((it) => it.due <= Date.now()).length;
       const row = document.createElement("div"); row.className = "libbook";
-      const cov = r.cover ? '<img class="cover" alt="" src="https://covers.openlibrary.org/b/id/' + r.cover + '-M.jpg" />' : '<div class="cover blank">' + escapeHtml((r.title || "¶").charAt(0)) + "</div>";
+      const cov = r.cover ? '<img class="cover" loading="lazy" decoding="async" alt="" src="https://covers.openlibrary.org/b/id/' + r.cover + '-M.jpg" />' : '<div class="cover blank">' + escapeHtml((r.title || "¶").charAt(0)) + "</div>";
       const dueTag = dueN ? `<span class="due">${dueN} due</span>` : "";
       const authorBit = r.author ? escapeHtml(r.author) + " · " : "";
       const quizWord = r.attempts.length > 1 ? "quizzes" : "quiz";
@@ -1643,15 +1909,108 @@ async function initCloud() {
   setGate(true); // block the app until we know the auth state
   try {
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-    sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        flowType: "pkce",
+        detectSessionInUrl: false,
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    });
+
+    // Capacitor iOS OAuth callback handler.
+    // When Apple/Google sends the user back to com.eddiekung.cortex://auth/callback,
+    // this completes the Supabase sign-in inside the app instead of leaving auth stuck.
+    const handleOAuthCallback = async (url) => {
+      if (!url || !url.startsWith(OAUTH_REDIRECT_URL)) return;
+
+      console.log("OAuth callback URL opened:", url);
+      gateMsg("", "Completing sign-in…");
+
+      try {
+        // Supabase may return either:
+        //   com.eddiekung.cortex://auth/callback?code=...
+        // or:
+        //   com.eddiekung.cortex://auth/callback#access_token=...&refresh_token=...
+        // Some iOS redirects may also put tokens in the query string, so check both.
+        const parsed = new URL(url);
+        const queryParams = parsed.searchParams;
+        const hashParams = new URLSearchParams((parsed.hash || "").replace(/^#/, ""));
+
+        const code = queryParams.get("code") || hashParams.get("code");
+        const access_token = hashParams.get("access_token") || queryParams.get("access_token");
+        const refresh_token = hashParams.get("refresh_token") || queryParams.get("refresh_token");
+
+        let data = null;
+
+        if (code) {
+          const result = await sb.auth.exchangeCodeForSession(code);
+          if (result.error) throw result.error;
+          data = result.data;
+        } else if (access_token && refresh_token) {
+          const result = await sb.auth.setSession({ access_token, refresh_token });
+          if (result.error) throw result.error;
+          data = result.data;
+        } else {
+          const errorDescription =
+            queryParams.get("error_description") ||
+            hashParams.get("error_description") ||
+            queryParams.get("error") ||
+            hashParams.get("error") ||
+            "The sign-in callback did not include a code or session tokens.";
+          gateMsg("err", errorDescription);
+          return;
+        }
+
+        sbUser = data && data.session ? data.session.user : null;
+        if (!sbUser) {
+          const sessionResult = await sb.auth.getSession();
+          sbUser = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+        }
+
+        if (sbUser) {
+          gateMsg("ok", "Signed in.");
+          await cloudSync();
+          await syncRevenueCatIdentity();
+          flushSessions();
+          renderAccount();
+          renderBadge();
+          renderLibrary();
+          updateGate();
+        } else {
+          gateMsg("err", "Sign-in returned to the app, but no session was created.");
+        }
+      } catch (err) {
+        console.warn("OAuth callback handling failed", err);
+        gateMsg("err", (err && err.message) ? err.message : "Sign-in could not be completed. Please try again.");
+      }
+    };
+
+    // Use Capacitor's native App plugin from the WebView global. This is more reliable
+    // in a plain index.html Capacitor app than importing @capacitor/app from a CDN.
+    try {
+      const AppPlugin = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+      if (AppPlugin && AppPlugin.addListener) {
+        AppPlugin.addListener("appUrlOpen", ({ url }) => handleOAuthCallback(url));
+        if (AppPlugin.getLaunchUrl) {
+          const launch = await AppPlugin.getLaunchUrl();
+          if (launch && launch.url) await handleOAuthCallback(launch.url);
+        }
+      } else {
+        console.warn("Capacitor App plugin not available on window.Capacitor.Plugins.App");
+      }
+    } catch (e) {
+      console.warn("Capacitor App plugin callback setup failed", e);
+    }
+
     const { data } = await sb.auth.getSession();
     sbUser = data && data.session ? data.session.user : null;
     sb.auth.onAuthStateChange(async (event, session) => {
       sbUser = session ? session.user : null;
-      if (event === "SIGNED_IN") { await cloudSync(); flushSessions(); renderLibrary(); }
+      if (event === "SIGNED_IN") { await cloudSync(); await syncRevenueCatIdentity(); flushSessions(); renderLibrary(); }
       renderAccount(); renderBadge(); updateGate();
     });
-    if (sbUser) await cloudSync();
+    if (sbUser) { await cloudSync(); await syncRevenueCatIdentity(); }
   } catch (e) { console.warn("Cloud init failed", e); }
   flushSessions();
   renderAccount(); updateGate();
@@ -1663,11 +2022,21 @@ function setGate(show) {
   g.style.display = show ? "flex" : "none";
   document.body.style.overflow = show ? "hidden" : "";
 }
-function updateGate() { if (!cloudOn()) { setGate(false); return; } setGate(!sbUser); }
+function updateGate() { setGate(false); }
 function gateMsg(cls, t) { const m = $("gateMsg"); if (!m) return; m.className = "acctmsg " + cls; m.textContent = t; }
+const OAUTH_REDIRECT_URL = "com.eddiekung.cortex://auth/callback";
+
 async function oauth(provider) {
   if (!sb) { gateMsg("err", "Still connecting — try again in a moment."); return; }
-  try { await sb.auth.signInWithOAuth({ provider, options: { redirectTo: location.origin } }); }
+  try {
+    await sb.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: OAUTH_REDIRECT_URL,
+        skipBrowserRedirect: false
+      }
+    });
+  }
   catch (e) { gateMsg("err", "Couldn't start " + provider + " sign-in."); }
 }
 
@@ -1758,7 +2127,7 @@ function startSession() { sessionStart = Date.now(); }
 // ---- auth actions ----
 async function acctSignUp(email, pass) { return sb.auth.signUp({ email, password: pass }); }
 async function acctSignIn(email, pass) { return sb.auth.signInWithPassword({ email, password: pass }); }
-async function acctSignOut() { await sb.auth.signOut(); sbUser = null; renderAccount(); }
+async function acctSignOut() { await sb.auth.signOut(); sbUser = null; await syncRevenueCatIdentity(); renderAccount(); }
 async function acctDeleteData() {
   if (!sb || !sbUser) return;
   await sb.from("quiz_attempts").delete().eq("user_id", sbUser.id);
@@ -1841,7 +2210,8 @@ if ($("gateInBtn")) {
 }
 
 // ============================ INIT ============================
-if (cloudOn()) setGate(true);   // gate up immediately so no quiz starts un-authed
+// Do not block the whole app while Supabase initializes. Users can still sign in from Settings.
+setGate(false);
 
 // notifications UI wiring
 $("notifOpenBtn").onclick = () => { haptic(); openNotifications(); };
@@ -1872,7 +2242,7 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", endSession);
 setInterval(flushSessions, 60000); // retry buffered sessions periodically
-applyTheme(); renderBadge(); refreshDueBanner(); renderAccount(); renderSubRow(); initCloud(); $("query").focus();
+applyTheme(); renderBadge(); refreshDueBanner(); renderAccount(); renderSubRow(); initCloud(); if (!window.Capacitor) $("query").focus();
 </script>
 
 <script id="capacitor-statusbar-fix">
@@ -1896,13 +2266,3 @@ applyTheme(); renderBadge(); refreshDueBanner(); renderAccount(); renderSubRow()
 
 </body>
 </html>
-
-<style>
-@media (max-width:480px){
-  h1{font-size:32px!important;line-height:1.15!important;}
-  .searchrow{flex-direction:column;}
-  .btn,input.search,input.text,textarea.notes{width:100%;}
-  .statgrid{grid-template-columns:1fr;}
-  .tabbar .tab .tlbl{font-size:10px;}
-}
-</style>
