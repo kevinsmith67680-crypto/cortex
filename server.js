@@ -79,6 +79,10 @@ function effectiveTier(acctId, clientTier) {
 // so production config lives in one place.
 const FIRSTPROMOTER_API_KEY = process.env.FIRSTPROMOTER_API_KEY || "";
 const FIRSTPROMOTER_ACCOUNT_ID = process.env.FIRSTPROMOTER_ACCOUNT_ID || "";
+const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const FP_SIGNUP_EVENTS_SEEN = new Set();
+
 const FP_SALE_EVENTS = new Set(["INITIAL_PURCHASE", "RENEWAL", "NON_RENEWING_PURCHASE"]);
 const fpSaleEventsSeen = new Set();
 
@@ -153,6 +157,152 @@ async function sendFirstPromoterSale(ev) {
   }
 }
 
+
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+async function supabaseFetch(pathAndQuery, options = {}) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  }
+
+  return fetch(`${SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      ...(options.headers || {}),
+    },
+  });
+}
+
+async function findAffiliatePreSignupByEmail(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) return null;
+
+  const response = await supabaseFetch(
+    `affiliate_pre_signups?email=eq.${encodeURIComponent(normalizedEmail)}&order=created_at.desc&limit=1`
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Supabase lookup failed (${response.status}): ${text}`);
+  }
+
+  const rows = await response.json();
+  return Array.isArray(rows) && rows.length ? rows[0] : null;
+}
+
+async function createFirstPromoterLead({ uid, email, match }) {
+  if (!FIRSTPROMOTER_API_KEY || !FIRSTPROMOTER_ACCOUNT_ID) {
+    throw new Error("Missing FIRSTPROMOTER_API_KEY or FIRSTPROMOTER_ACCOUNT_ID");
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  const dedupeKey = `${uid}:${normalizedEmail}`;
+  if (FP_SIGNUP_EVENTS_SEEN.has(dedupeKey)) {
+    return { skipped: true, status: 200, text: "already attempted in this server process" };
+  }
+
+  const body = {
+    uid,
+    email: normalizedEmail,
+    skip_email_notification: true,
+  };
+
+  // Prefer tid when it exists because it points to the exact FirstPromoter click.
+  // Fall back to ref_id/fpr from the landing page record.
+  if (match && match.tid) body.tid = match.tid;
+  else if (match && (match.ref_id || match.fpr)) body.ref_id = match.ref_id || match.fpr;
+
+  const fp = await fetch("https://api.firstpromoter.com/api/v2/track/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${FIRSTPROMOTER_API_KEY}`,
+      "Account-ID": FIRSTPROMOTER_ACCOUNT_ID,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await fp.text();
+  if (fp.ok) {
+    FP_SIGNUP_EVENTS_SEEN.add(dedupeKey);
+    if (FP_SIGNUP_EVENTS_SEEN.size > 10000) FP_SIGNUP_EVENTS_SEEN.clear();
+  }
+
+  return { skipped: false, status: fp.status, ok: fp.ok, text };
+}
+
+async function handleAffiliateLead(body) {
+  const uid = String(body?.uid || "").trim();
+  const email = normalizeEmail(body?.email);
+
+  if (!uid || !email) {
+    return { status: 400, json: { ok: false, error: "Missing uid or email" } };
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return {
+      status: 500,
+      json: { ok: false, error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY on server" },
+    };
+  }
+
+  if (!FIRSTPROMOTER_API_KEY || !FIRSTPROMOTER_ACCOUNT_ID) {
+    return {
+      status: 500,
+      json: { ok: false, error: "Missing FIRSTPROMOTER_API_KEY or FIRSTPROMOTER_ACCOUNT_ID on server" },
+    };
+  }
+
+  const match = await findAffiliatePreSignupByEmail(email);
+  if (!match) {
+    console.log(`[FirstPromoter] No affiliate pre-signup found for ${email}`);
+    return { status: 200, json: { ok: true, matched: false } };
+  }
+
+  const result = await createFirstPromoterLead({ uid, email, match });
+  if (!result.ok && !result.skipped) {
+    console.warn(`[FirstPromoter] Lead not accepted (${result.status}): ${result.text}`);
+  } else {
+    console.log(`[FirstPromoter] Lead ${result.skipped ? "already attempted" : "tracked"} for uid=${uid}, email=${email}`);
+  }
+
+  return {
+    status: 200,
+    json: {
+      ok: !!result.ok || !!result.skipped,
+      matched: true,
+      firstPromoterStatus: result.status,
+      skipped: !!result.skipped,
+    },
+  };
+}
+
+function readJsonBody(req, maxBytes = 1e6) {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.on("data", (chunk) => {
+      raw += chunk;
+      if (raw.length > maxBytes) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+      }
+    });
+    req.on("end", () => {
+      try {
+        resolve(raw ? JSON.parse(raw) : {});
+      } catch {
+        reject(new Error("Invalid JSON"));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+
 function clientIp(req) {
   // Render sits behind a proxy; the real client IP is first in x-forwarded-for.
   const fwd = req.headers["x-forwarded-for"];
@@ -181,7 +331,7 @@ function rateLimited(ip) {
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Max-Age": "86400",
 };
 
@@ -448,6 +598,23 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: true }));
     });
+    return;
+  }
+
+  // Affiliate lead bridge: when a Supabase user signs in/signs up, the app calls
+  // this endpoint. The server checks the landing-page affiliate_pre_signups table
+  // by email and, when a match exists, creates the corresponding FirstPromoter lead.
+  if (req.method === "POST" && req.url === "/api/affiliate-lead") {
+    try {
+      const body = await readJsonBody(req);
+      const { status, json } = await handleAffiliateLead(body);
+      res.writeHead(status, { "Content-Type": "application/json", ...CORS_HEADERS });
+      res.end(JSON.stringify(json));
+    } catch (err) {
+      console.warn("[affiliate-lead] failed:", err.message);
+      res.writeHead(500, { "Content-Type": "application/json", ...CORS_HEADERS });
+      res.end(JSON.stringify({ ok: false, error: "Affiliate lead failed" }));
+    }
     return;
   }
 

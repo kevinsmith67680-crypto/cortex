@@ -1403,6 +1403,42 @@ async function syncRevenueCatIdentity() {
   }
 }
 
+async function syncAffiliateLead(force = false) {
+  if (!sbUser || !sbUser.id || !sbUser.email) return;
+  if (!API_BASE) return;
+
+  const syncedKey = "retain:firstpromoterLeadSynced:" + sbUser.id;
+  if (!force && LS.get(syncedKey, false)) return;
+
+  try {
+    const response = await fetch(API_BASE + "/api/affiliate-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: sbUser.id,
+        email: sbUser.email
+      })
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      console.warn("[FirstPromoter] Affiliate lead sync failed", response.status, data);
+      return;
+    }
+
+    if (data && data.matched && data.ok) {
+      LS.set(syncedKey, true);
+      console.log("[FirstPromoter] Affiliate lead synced for current user.");
+    } else if (data && data.matched === false) {
+      console.log("[FirstPromoter] No affiliate pre-signup matched this email.");
+    }
+  } catch (e) {
+    console.warn("[FirstPromoter] Affiliate lead sync request failed", e);
+  }
+}
+
+
 async function rcLoadOfferings() {
   if (!rcLive()) return null;
   try {
@@ -1971,6 +2007,7 @@ async function initCloud() {
         if (sbUser) {
           gateMsg("ok", "Signed in.");
           await cloudSync();
+          await syncAffiliateLead();
           await syncRevenueCatIdentity();
           flushSessions();
           renderAccount();
@@ -2007,10 +2044,10 @@ async function initCloud() {
     sbUser = data && data.session ? data.session.user : null;
     sb.auth.onAuthStateChange(async (event, session) => {
       sbUser = session ? session.user : null;
-      if (event === "SIGNED_IN") { await cloudSync(); await syncRevenueCatIdentity(); flushSessions(); renderLibrary(); }
+      if (event === "SIGNED_IN") { await cloudSync(); await syncAffiliateLead(); await syncRevenueCatIdentity(); flushSessions(); renderLibrary(); }
       renderAccount(); renderBadge(); updateGate();
     });
-    if (sbUser) { await cloudSync(); await syncRevenueCatIdentity(); }
+    if (sbUser) { await cloudSync(); await syncAffiliateLead(); await syncRevenueCatIdentity(); }
   } catch (e) { console.warn("Cloud init failed", e); }
   flushSessions();
   renderAccount(); updateGate();
@@ -2172,7 +2209,7 @@ function renderAccount() {
       msg("", "Signing in\u2026");
       const { error } = await acctSignIn(e, p);
       if (error) return msg("err", error.message);
-      await cloudSync(); renderLibrary(); renderAccount();
+      await cloudSync(); await syncAffiliateLead(); renderLibrary(); renderAccount();
     };
     $("acctUpBtn").onclick = async () => {
       const e = $("acctEmail").value.trim(), p = $("acctPass").value;
