@@ -3,6 +3,13 @@
   "appName": "Retain",
   "webDir": "public",
   "ios": {
-    "contentInset": "automatic"
+    "contentInset": "never"
+  },
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "LIGHT",
+      "backgroundColor": "#fbfaf6"
+    }
   }
 }

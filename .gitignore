@@ -10,3 +10,9 @@ ios/
 # misc
 .DS_Store
 *.log
+
+cortex-release.jks
+*.jks
+.env
+keystore.properties
+node_modules/
